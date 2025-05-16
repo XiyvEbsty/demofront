@@ -1,26 +1,27 @@
-
-
 <template>
 <div>
-  <el-button>Default</el-button>
-  <el-button type="primary" style="background: #3741fb">测试颜色</el-button>
-  <el-button type="success">Success</el-button>
-  <el-button type="info">Info</el-button>
-  <el-button type="warning">Warning</el-button>
-  <el-button type="danger">Danger</el-button>
-
-
-  <div>
-    <el-icon size="25" color="blue"><Delete /></el-icon>
-    <el-input placeholder="Pick a date" :suffix-icon="Calendar" :prefix-icon="Search"/>
+  <div class="card" style="margin-bottom: 5px">
+    <el-input style="width: 240px;margin-right: 10px" v-model="data.name" placeholder="请输入名称查询" :prefix-icon="Search"></el-input>
+    <el-button type="primary">查 询</el-button>
   </div>
+  <div class="card" style="margin-bottom: 5px">
+    <el-button type="success">新增</el-button>
+    <el-button type="danger">删除</el-button>
+  </div>
+  <div class="card" style="margin-bottom: 5px">
 
+  </div>
 </div>
+
 
 </template>
 
 
 <script setup>
+import { reactive  } from "vue";
+import {Search} from "@element-plus/icons-vue";
+const data = reactive({
+  name:null
+})
 
-import {Calendar, Search} from "@element-plus/icons-vue";
 </script>
