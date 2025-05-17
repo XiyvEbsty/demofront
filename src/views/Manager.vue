@@ -7,7 +7,7 @@
         <span style="font-size: 20px; font-weight: bold;color: #375959;margin-left: 15px">职位推荐系统</span>
       </div>
       <div style="flex:1;display: flex;align-items: center;padding-left:20px ;border-bottom: 1px solid #ddd">
-        首页 / 数据分析
+        {{ currentRoute }}
       </div>
       <!-- 头像 -->
       <div style="width: fit-content;padding-right: 20px;display: flex;align-items: center;border-bottom: 1px solid #ddd">
@@ -19,7 +19,7 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="router.push('/profile')">个人信息</el-dropdown-item>
-              <el-dropdown-item>退出登录</el-dropdown-item>
+              <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
               <el-dropdown-item @click="router.push('/profile?tab=password')">修改密码</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -31,8 +31,13 @@
     <!-- 下方区域开始 -->
     <div style="display: flex; height: calc(100vh - 60px); overflow: hidden;">
       <!-- 菜单区域开始 -->
-      <div style="width: 210px; height: 100%; overflow-y: auto; background-color: #c7d8ca;">
-        <el-menu router: default-openeds="['1']" :default-active="router.currentRoute.value.path" style="height: 100%; border-right: none;" @select="handleSelect"
+      <div style="width: 210px; height: 100%; overflow-y: auto; background-color: #fff; border-right: 1px solid #e6e6e6;">
+        <el-menu 
+          :default-active="activeMenu"
+          style="height: 100%; border-right: none;"
+          @select="handleSelect"
+          text-color="#333"
+          active-text-color="#409EFF"
         >
           <el-menu-item index="/home">
             <el-icon><House /></el-icon>
@@ -53,135 +58,108 @@
       <!-- 菜单区域结束 -->
 
       <!--数据渲染区域开始 -->
-      <div style="flex:1; overflow-y: auto; background-color: #efefea;">
+      <div style="flex:1; overflow-y: auto; background-color: #f5f7fa;">
         <RouterView/>
       </div>
       <!-- 数据渲染区域结束 -->
     </div>
-
   </div>
-
 </template>
 
 <script setup>
-import {House, Document} from "@element-plus/icons-vue";
-import { useRouter } from 'vue-router'
+import {House, Document, Location} from "@element-plus/icons-vue";
+import { useRouter, useRoute } from 'vue-router'
 import { userInfo } from '@/store/user'
+import { computed } from 'vue'
+import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
+
+// 计算当前激活的菜单项
+const activeMenu = computed(() => {
+  return route.path
+})
+
+// 计算当前路由名称
+const currentRoute = computed(() => {
+  const pathMap = {
+    '/home': '首页',
+    '/job-quiz': '职位测评',
+    '/profile': '个人信息',
+    '/job-recommendations': '职位推荐',
+    '/quiz-history': '测评历史'
+  }
+  return pathMap[route.path] || '首页'
+})
 
 const handleSelect = (key) => {
   router.push(key)
 }
+
+// 处理退出登录
+const handleLogout = () => {
+  ElMessageBox.confirm(
+    '确定要退出登录吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    // 清除登录状态
+    localStorage.removeItem('token')
+    localStorage.removeItem('userRole')
+    // 跳转到登录页
+    router.push('/login')
+  }).catch(() => {
+    // 取消退出
+  })
+}
 </script>
 
 <style scoped>
-.manager-container {
-  height: 100vh;
-  display: flex;
+.el-menu {
+  border-right: none !important;
 }
 
-.sidebar {
-  width: 200px;
-  background: linear-gradient(180deg, #409EFF 0%, #36D1DC 100%);
-  color: white;
-  height: 100%;
-  transition: all 0.3s;
+.el-menu-item {
+  color: #333 !important;
 }
 
-.sidebar-header {
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.el-menu-item.is-active {
+  background-color: #ecf5ff !important;
+  color: #409EFF !important;
+  border-right: 3px solid #409EFF;
 }
 
-.sidebar-header h2 {
-  margin: 0;
-  font-size: 1.2em;
-  color: white;
+.el-menu-item:hover {
+  background-color: #f5f7fa !important;
 }
 
-.menu-item {
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.9);
+.el-sub-menu__title {
+  color: #333 !important;
 }
 
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+.el-sub-menu__title:hover {
+  background-color: #f5f7fa !important;
 }
 
-.menu-item.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border-left: 4px solid white;
+.el-menu--collapse {
+  width: 64px;
 }
 
-.menu-item i {
-  margin-right: 10px;
-  font-size: 1.2em;
+.el-menu-item .el-icon,
+.el-sub-menu__title .el-icon {
+  color: #333 !important;
 }
 
-.main-content {
-  flex: 1;
-  background-color: #f5f7fa;
-  overflow-y: auto;
+.el-menu-item.is-active .el-icon {
+  color: #409EFF !important;
 }
 
-.header {
-  background: white;
-  padding: 15px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.header-left i {
-  font-size: 1.5em;
-  color: #409EFF;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.header-right i {
-  font-size: 1.2em;
-  color: #409EFF;
-  margin-left: 20px;
-  cursor: pointer;
-}
-
-.content {
-  padding: 20px;
-}
-
-.el-dropdown-menu {
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.el-dropdown-menu__item {
-  padding: 8px 20px;
-  color: #606266;
-}
-
-.el-dropdown-menu__item:hover {
-  background-color: #f5f7fa;
-  color: #409EFF;
+.el-sub-menu.is-active .el-sub-menu__title {
+  color: #409EFF !important;
 }
 </style>

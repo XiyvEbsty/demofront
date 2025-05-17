@@ -1,27 +1,30 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2>职位推荐系统</h2>
+      <h2>管理员登录</h2>
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef">
         <el-form-item prop="username">
           <el-input 
             v-model="loginForm.username" 
-            placeholder="用户名"
+            placeholder="管理员账号"
             prefix-icon="User"
-            @input="handleUsernameInput"
+            disabled
           />
         </el-form-item>
         <el-form-item prop="password">
           <el-input 
             v-model="loginForm.password" 
             type="password" 
-            placeholder="密码"
+            placeholder="管理员密码"
             prefix-icon="Lock"
             show-password
           />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleLogin" style="width: 100%">登录</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="text" @click="router.push('/login')" style="width: 100%">返回普通登录</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -39,25 +42,14 @@ const loginFormRef = ref(null)
 const loading = ref(false)
 
 const loginForm = ref({
-  username: '',
+  username: 'admin',
   password: '',
-  remember: false
 })
 
 const rules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-  ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
+    { required: true, message: '请输入管理员密码', trigger: 'blur' },
   ]
-}
-
-// 处理用户名输入
-const handleUsernameInput = (value) => {
-  if (value.toLowerCase() === 'admin') {
-    router.push('/admin-login')
-  }
 }
 
 const handleLogin = () => {
@@ -66,13 +58,13 @@ const handleLogin = () => {
       loading.value = true
       // 模拟登录请求
       setTimeout(() => {
-        if (loginForm.value.username === 'user' && loginForm.value.password === 'user123') {
-          localStorage.setItem('token', 'user-token')
-          localStorage.setItem('userRole', 'user')
-          ElMessage.success('登录成功')
+        if (loginForm.value.password === 'admin123') {
+          localStorage.setItem('token', 'admin-token')
+          localStorage.setItem('userRole', 'admin')
+          ElMessage.success('管理员登录成功')
           router.push('/home')
         } else {
-          ElMessage.error('用户名或密码错误')
+          ElMessage.error('管理员密码错误')
         }
         loading.value = false
       }, 1000)
