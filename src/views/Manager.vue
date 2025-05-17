@@ -32,10 +32,7 @@
     <div style="display: flex; height: calc(100vh - 60px); overflow: hidden;">
       <!-- 菜单区域开始 -->
       <div style="width: 210px; height: 100%; overflow-y: auto; background-color: #c7d8ca;">
-        <el-menu 
-          default-active="/home" 
-          style="height: 100%; border-right: none;"
-          @select="handleSelect"
+        <el-menu router: default-openeds="['1']" :default-active="router.currentRoute.value.path" style="height: 100%; border-right: none;" @select="handleSelect"
         >
           <el-menu-item index="/home">
             <el-icon><House /></el-icon>
