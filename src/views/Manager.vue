@@ -2,7 +2,7 @@
   <div>
     <!-- 头部区域开始-->
     <div style="height:60px;display: flex;">
-      <div style="width:210px;display: flex;align-items: center;padding-left:10px;background-color: #c7d8ca ">
+      <div style="width:210px;display: flex;align-items: center;padding-left:10px;background-color: #f5f7fa ">
         <img style="width: 40px;height: 40px;border-radius: 50%" src="@/assets/imgs/logo.png" alt="">
         <span style="font-size: 20px; font-weight: bold;color: #375959;margin-left: 15px">职位推荐系统</span>
       </div>
@@ -13,29 +13,31 @@
       <div style="width: fit-content;padding-right: 20px;display: flex;align-items: center;border-bottom: 1px solid #ddd">
         <el-dropdown>
           <div style="display: flex;align-items: center">
-            <img style="width: 40px;height: 40px;border-radius: 50%" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" alt="">
-            <span style="margin-left: 5px">管理员</span>
+            <img style="width: 40px;height: 40px;border-radius: 50%" :src="userInfo.avatar" alt="">
+            <span style="margin-left: 5px">{{ userInfo.nickname }}</span>
           </div>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>个人信息</el-dropdown-item>
+              <el-dropdown-item @click="router.push('/profile')">个人信息</el-dropdown-item>
               <el-dropdown-item>退出登录</el-dropdown-item>
-              <el-dropdown-item>修改密码</el-dropdown-item>
+              <el-dropdown-item @click="router.push('/profile?tab=password')">修改密码</el-dropdown-item>
             </el-dropdown-menu>
-
           </template>
         </el-dropdown>
-
       </div>
     </div>
     <!-- 头部区域结束 -->
 
     <!-- 下方区域开始 -->
-    <div style="display: flex">
+    <div style="display: flex; height: calc(100vh - 60px); overflow: hidden;">
       <!-- 菜单区域开始 -->
-      <div style="width: 210px">
-        <el-menu default-active="/manager/home" style="min-height: calc(100vh - 60px)">
-          <el-menu-item index="/manager/home">
+      <div style="width: 210px; height: 100%; overflow-y: auto; background-color: #c7d8ca;">
+        <el-menu 
+          default-active="/home" 
+          style="height: 100%; border-right: none;"
+          @select="handleSelect"
+        >
+          <el-menu-item index="/home">
             <el-icon><House /></el-icon>
             <span>首页</span>
           </el-menu-item>
@@ -44,58 +46,145 @@
               <el-icon><location /></el-icon>
               <span>数据管理</span>
             </template>
-            <el-menu-item index="1-1">二级菜单</el-menu-item>
+            <el-menu-item index="/job-quiz">
+              <el-icon><Document /></el-icon>
+              <span>职位测评</span>
+            </el-menu-item>
           </el-sub-menu>
         </el-menu>
       </div>
       <!-- 菜单区域结束 -->
 
       <!--数据渲染区域开始 -->
-      <div style="flex:1;width 0;padding: 10px;background-color: #efefea">
+      <div style="flex:1; overflow-y: auto; background-color: #efefea;">
         <RouterView/>
       </div>
       <!-- 数据渲染区域结束 -->
-  </div>
+    </div>
 
   </div>
 
 </template>
 
 <script setup>
+import {House, Document} from "@element-plus/icons-vue";
+import { useRouter } from 'vue-router'
+import { userInfo } from '@/store/user'
 
-import {House} from "@element-plus/icons-vue";
+const router = useRouter()
+
+const handleSelect = (key) => {
+  router.push(key)
+}
 </script>
 
-<style>
-.el-menu{
-  background-color: #c7d8ca;
-  border:none;
-  box-shadow: 0 0 8px rgba(0, 0, 0, .12);
+<style scoped>
+.manager-container {
+  height: 100vh;
+  display: flex;
 }
-.el-sub-menu__title{
-  background-color: #c7d8ca;
-  color: #bd2525;
+
+.sidebar {
+  width: 200px;
+  background: linear-gradient(180deg, #409EFF 0%, #36D1DC 100%);
+  color: white;
+  height: 100%;
+  transition: all 0.3s;
 }
-.el-menu-item{
-  height: 50px;
-  color: #bd2525;
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.el-sub-menu.is-active{
-  background-color: #cabbbb;
-  color: rgb(121.3, 187.1, 255);
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.2em;
+  color: white;
 }
-.el-sub-menu__title:hover{
-  background-color: #c7d8ca;
-}
-.el-menu-item:not(.is-active)hover{
-  background-color: #18aeae;
-  color: #bd2525;
-}
-.el-tooltip__trigger{
-  outline: none;
-}
-.el-dropdown{
-/*  鼠标移入小手*/
+
+.menu-item {
+  padding: 12px 20px;
   cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-left: 4px solid white;
+}
+
+.menu-item i {
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.main-content {
+  flex: 1;
+  background-color: #f5f7fa;
+  overflow-y: auto;
+}
+
+.header {
+  background: white;
+  padding: 15px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-left i {
+  font-size: 1.5em;
+  color: #409EFF;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-right i {
+  font-size: 1.2em;
+  color: #409EFF;
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.content {
+  padding: 20px;
+}
+
+.el-dropdown-menu {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.el-dropdown-menu__item {
+  padding: 8px 20px;
+  color: #606266;
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: #f5f7fa;
+  color: #409EFF;
 }
 </style>
