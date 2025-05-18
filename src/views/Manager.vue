@@ -39,18 +39,26 @@
           text-color="#333"
           active-text-color="#409EFF"
         >
-          <el-menu-item index="/home">
-            <el-icon><House /></el-icon>
-            <span>首页</span>
-          </el-menu-item>
           <el-sub-menu index="1">
             <template #title>
               <el-icon><location /></el-icon>
               <span>数据管理</span>
             </template>
-            <el-menu-item index="/job-quiz">
+            <el-menu-item index="/manager/question">
               <el-icon><Document /></el-icon>
-              <span>职位测评</span>
+              <span>测评题库</span>
+            </el-menu-item>
+            <el-menu-item index="/manager/users">
+              <el-icon><User /></el-icon>
+              <span>用户管理</span>
+            </el-menu-item>
+            <el-menu-item index="/manager/jobs">
+              <el-icon><Briefcase /></el-icon>
+              <span>职位管理</span>
+            </el-menu-item>
+            <el-menu-item index="/manager/stats">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>统计分析</span>
             </el-menu-item>
           </el-sub-menu>
         </el-menu>
@@ -67,7 +75,7 @@
 </template>
 
 <script setup>
-import {House, Document, Location} from "@element-plus/icons-vue";
+import {Document, Location, User, Briefcase, DataAnalysis} from "@element-plus/icons-vue";
 import { useRouter, useRoute } from 'vue-router'
 import { userInfo } from '@/store/user'
 import { computed } from 'vue'

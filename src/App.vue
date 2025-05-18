@@ -1,10 +1,33 @@
 <template>
-  <router-view v-slot="{ Component }">
+  <!-- 根据当前路由决定是否应用全局布局 -->
+  <AppLayout v-if="!isAdminRoute">
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+  </AppLayout>
+
+  <!-- 管理员界面不使用全局布局 -->
+  <router-view v-else v-slot="{ Component }">
     <transition name="fade" mode="out-in">
       <component :is="Component" />
     </transition>
   </router-view>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import AppLayout from './components/AppLayout.vue'
+
+const route = useRoute()
+
+// 判断当前是否为管理员路由
+const isAdminRoute = computed(() => {
+  return route.meta.isAdmin === true
+})
+</script>
 
 <style>
 .fade-enter-active,

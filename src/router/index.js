@@ -1,60 +1,56 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import homeRoutes from './modules/home'
-import jobRoutes from './modules/job'
-import userRoutes from './modules/user'
+import Home from '../views/Home.vue'
+import JobQuiz from '../views/JobQuiz.vue'
+import JobRecommendations from '../views/JobRecommendations.vue'
+import UserProfile from '../views/UserProfile.vue'
+import Login from '../views/Login.vue'
+import Manager from '../views/Manager.vue'
+import CareerAnchorQuiz from '../views/CareerAnchorQuiz.vue'
+
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/job-quiz',
+    name: 'JobQuiz',
+    component: JobQuiz
+  },
+  {
+    path: '/job-recommendations',
+    name: 'JobRecommendations',
+    component: JobRecommendations
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/manager',
+    name: 'Manager',
+    component: Manager,
+    meta: {
+      isAdmin: true  // 标记管理员界面
+    }
+  },
+  {
+    path: '/career-anchor-quiz',
+    name: 'CareerAnchorQuiz',
+    component: CareerAnchorQuiz
+  }
+]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      component: () => import('@/views/Manager.vue'),
-      redirect: '/home',
-      children: [
-        {
-          path: '/home',
-          component: () => import('@/views/Home.vue'),
-          meta: {
-            title: '首页',
-            icon: 'House',
-            requiresAuth: false  // 首页不需要登录
-          }
-        },
-        ...jobRoutes,
-        ...userRoutes
-      ]
-    },
-    {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/views/Login.vue'),
-      meta: {
-        title: '登录',
-        requiresAuth: false
-      }
-    },
-    {
-      path: '/admin-login',
-      name: 'AdminLogin',
-      component: () => import('@/views/AdminLogin.vue'),
-      meta: {
-        title: '管理员登录',
-        requiresAuth: false
-      }
-    },
-    {
-      path: '/notFound',
-      component: () => import('@/views/404.vue'),
-      meta: {
-        title: '404',
-        requiresAuth: false
-      }
-    },
-    {
-      path: '/:pathMatch(.*)',
-      redirect: '/notFound'
-    }
-  ]
+  history: createWebHistory(),
+  routes
 })
 
 // 全局前置守卫
