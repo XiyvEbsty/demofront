@@ -1,60 +1,108 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import homeRoutes from './modules/home'
-import jobRoutes from './modules/job'
-import userRoutes from './modules/user'
+import Home from '../views/Home.vue'
+import JobQuiz from '../views/JobQuiz.vue'
+import JobRecommendations from '../views/JobRecommendations.vue'
+import UserProfile from '../views/UserProfile.vue'
+import Login from '../views/Login.vue'
+import Manager from '../views/Manager.vue'
+import CareerAnchorQuiz from '../views/CareerAnchorQuiz.vue'
+import KnowledgeGraphManagement from '../views/KnowledgeGraphManagement.vue'
+import QuestionManager from '../views/QuestionManager.vue'
+import UserManager from '../views/UserManager.vue'
+import JobManager from '../views/JobManager.vue'
+import StatsManager from '../views/StatsManager.vue'
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
+const routes = [
     {
       path: '/',
-      component: () => import('@/views/Manager.vue'),
-      redirect: '/home',
-      children: [
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/job-quiz',
+    name: 'JobQuiz',
+    component: JobQuiz
+  },
         {
-          path: '/home',
-          component: () => import('@/views/Home.vue'),
-          meta: {
-            title: '首页',
-            icon: 'House',
-            requiresAuth: false  // 首页不需要登录
-          }
-        },
-        ...jobRoutes,
-        ...userRoutes
-      ]
+    path: '/job-recommendations',
+    name: 'JobRecommendations',
+    component: JobRecommendations
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile
     },
     {
       path: '/login',
       name: 'Login',
-      component: () => import('@/views/Login.vue'),
-      meta: {
-        title: '登录',
-        requiresAuth: false
-      }
+    component: Login
     },
     {
-      path: '/admin-login',
-      name: 'AdminLogin',
-      component: () => import('@/views/AdminLogin.vue'),
+    path: '/manager',
+    name: 'Manager',
+    component: Manager,
       meta: {
-        title: '管理员登录',
-        requiresAuth: false
-      }
+      isAdmin: true  // 标记管理员界面
+      },
+      children: [
+        {
+          path: 'question',
+          name: 'QuestionManager',
+          component: QuestionManager,
+          meta: {
+            isAdmin: true,
+            title: '测评题库管理'
+          }
+        },
+        {
+          path: 'users',
+          name: 'UserManager',
+          component: UserManager,
+          meta: {
+            isAdmin: true,
+            title: '用户管理'
+          }
+        },
+        {
+          path: 'jobs',
+          name: 'JobManager',
+          component: JobManager,
+          meta: {
+            isAdmin: true,
+            title: '职位管理'
+          }
+        },
+        {
+          path: 'stats',
+          name: 'StatsManager',
+          component: StatsManager,
+          meta: {
+            isAdmin: true,
+            title: '统计分析'
+          }
+        },
+        {
+          path: 'knowledge-graph',
+          name: 'KnowledgeGraphManagement',
+          component: KnowledgeGraphManagement,
+          meta: {
+            isAdmin: true,
+            title: '知识图谱管理'
+          }
+        }
+      ]
     },
     {
-      path: '/notFound',
-      component: () => import('@/views/404.vue'),
-      meta: {
-        title: '404',
-        requiresAuth: false
-      }
-    },
-    {
-      path: '/:pathMatch(.*)',
-      redirect: '/notFound'
+    path: '/career-anchor-quiz',
+    name: 'CareerAnchorQuiz',
+    component: CareerAnchorQuiz
     }
-  ]
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
 })
 
 // 全局前置守卫

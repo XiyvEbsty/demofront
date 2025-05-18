@@ -3,7 +3,7 @@
     <el-card v-if="!quizCompleted">
       <template #header>
         <div class="card-header">
-          <h2>职业兴趣测评</h2>
+          <h2>职业锚点测评</h2>
           <div class="progress">题目进度: {{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</div>
         </div>
       </template>
@@ -13,17 +13,17 @@
         <div class="options">
           <el-radio-group v-model="currentAnswer" @change="handleAnswer">
             <el-radio 
-              v-for="score in [5, 4, 3, 2, 1]" 
-              :key="score" 
-              :label="score"
+              v-for="option in options" 
+              :key="option.value" 
+              :label="option.value"
               class="option-item"
             >
               <div class="option-content">
-                <span class="option-score">{{ score }}</span>
-                <span class="option-text">{{ getOptionLabel(score) }}</span>
+                <span class="option-score">{{ option.value }}</span>
+                <span class="option-text">{{ option.label }}</span>
               </div>
             </el-radio>
-            </el-radio-group>
+          </el-radio-group>
         </div>
 
         <div class="navigation-buttons">
@@ -41,22 +41,22 @@
             {{ currentQuestionIndex === totalQuestions - 1 ? '提交' : '下一题' }}
           </el-button>
         </div>
-        </div>
+      </div>
 
-      <!-- 题目预览区（移到题目下方） -->
+      <!-- 题目预览区（在题目下方） -->
       <div class="question-preview">
         <div class="preview-title">整卷预览</div>
         <div class="preview-items">
           <div 
-            v-for="(_, index) in quizQuestions" 
+            v-for="(_, index) in questions" 
             :key="index" 
             :class="['preview-item', {
-              'answered': answeredQuestions[index],
+              'answered': answeredQuestions[index + 1],
               'current': currentQuestionIndex === index
             }]"
             @click="jumpToQuestion(index)"
-            >
-              {{ index + 1 }}
+          >
+            {{ index + 1 }}
           </div>
         </div>
       </div>
@@ -70,12 +70,32 @@
       </template>
 
       <div class="result-section">
-        <h3>您的霍兰德职业兴趣类型得分：</h3>
+        <h3>您的职业锚点类型得分：</h3>
         <div class="score-grid">
           <div v-for="(score, type) in scores" :key="type" class="score-item">
             <div class="type-label">{{ getTypeLabel(type) }}</div>
-            <el-progress type="dashboard" :percentage="Math.round(score * 20)" />
+            <el-progress type="dashboard" :percentage="Math.round(score / maxPossibleScore * 100)" />
             <div class="type-description">{{ getTypeDescription(type) }}</div>
+          </div>
+        </div>
+
+        <div class="top-types">
+          <h3>您的主导职业锚点类型：</h3>
+          <div v-for="(type, index) in topTypes" :key="index" class="top-type-item">
+            <div class="rank">{{ index + 1 }}</div>
+            <div class="type-info">
+              <h4>{{ careerAnchorTypes[type].name }}</h4>
+              <p>{{ careerAnchorTypes[type].fullName }}</p>
+              <div class="type-score">得分: {{ scores[type] }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="type-description-detail">
+          <h3>主导类型详细说明：</h3>
+          <div class="primary-type-card">
+            <h4>{{ careerAnchorTypes[topTypes[0]].name }}</h4>
+            <p>{{ careerAnchorTypes[topTypes[0]].description }}</p>
           </div>
         </div>
 
@@ -89,48 +109,43 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { questions } from '../data/questions'
 import { ElMessage } from 'element-plus'
+import { 
+  careerAnchorQuestions, 
+  careerAnchorOptions,
+  careerAnchorTypes,
+  calculateCareerAnchorScores 
+} from '../data/career-anchor-questions'
 
 const router = useRouter()
-const totalQuestions = 20 // 设置要随机抽取的题目数量
-const quizQuestions = ref([])
+const questions = careerAnchorQuestions
+const options = careerAnchorOptions
+const totalQuestions = questions.length
 const currentQuestionIndex = ref(0)
 const quizCompleted = ref(false)
 const currentAnswer = ref(null)
 const answeredQuestions = reactive({}) // 记录已回答的题目
 const answers = reactive({}) // 存储所有答案
+const scores = ref({})
+const topTypes = ref([])
 
-// RIASEC得分
-const scores = ref({
-  R: 0, // 实际型
-  I: 0, // 研究型
-  A: 0, // 艺术型
-  S: 0, // 社会型
-  E: 0, // 企业型
-  C: 0  // 常规型
-})
-
-// 随机抽取题目
-const getRandomQuestions = () => {
-  const shuffled = [...questions].sort(() => 0.5 - Math.random())
-  return shuffled.slice(0, totalQuestions)
-}
+// 每个类型的最高可能得分（5题，每题6分，三个最高分题目每题额外4分）
+const maxPossibleScore = 5 * 6 + 3 * 4
 
 // 当前题目
 const currentQuestion = computed(() => {
-  return quizQuestions.value[currentQuestionIndex.value]
+  return questions[currentQuestionIndex.value]
 })
 
 // 处理答题
 const handleAnswer = (value) => {
   // 记录答案
-  answers[currentQuestionIndex.value] = value
+  answers[currentQuestion.value.id] = value
   
   // 标记题目已回答
-  answeredQuestions[currentQuestionIndex.value] = true
+  answeredQuestions[currentQuestion.value.id] = true
   
   // 延迟后自动进入下一题（给用户时间看到选中效果）
   setTimeout(() => {
@@ -140,24 +155,12 @@ const handleAnswer = (value) => {
   }, 300)
 }
 
-// 获取选项标签
-const getOptionLabel = (score) => {
-  const labels = {
-    5: '非常符合',
-    4: '比较符合',
-    3: '一般',
-    2: '比较不符合',
-    1: '非常不符合'
-  }
-  return labels[score]
-}
-
 // 下一题
 const nextQuestion = () => {
   if (currentQuestionIndex.value < totalQuestions - 1) {
     currentQuestionIndex.value++
     // 如果已回答过，显示答案
-    currentAnswer.value = answers[currentQuestionIndex.value] || null
+    currentAnswer.value = answers[currentQuestion.value.id] || null
   } else {
     // 点击提交
     submitQuiz()
@@ -172,10 +175,11 @@ const submitQuiz = () => {
     // 如果有未答题，显示提示
     const unansweredCount = totalQuestions - answeredCount
     ElMessage.warning(`还有 ${unansweredCount} 道题目未完成，请完成所有题目后再提交`)
-  
+    
     // 找到第一个未答题的索引并跳转
     for (let i = 0; i < totalQuestions; i++) {
-      if (!answeredQuestions[i]) {
+      const questionId = questions[i].id
+      if (!answeredQuestions[questionId]) {
         jumpToQuestion(i)
         break
       }
@@ -192,60 +196,45 @@ const previousQuestion = () => {
   if (currentQuestionIndex.value > 0) {
     currentQuestionIndex.value--
     // 显示之前的答案
-    currentAnswer.value = answers[currentQuestionIndex.value] || null
+    currentAnswer.value = answers[currentQuestion.value.id] || null
   }
 }
 
 // 跳转到指定题目
 const jumpToQuestion = (index) => {
   currentQuestionIndex.value = index
-  currentAnswer.value = answers[index] || null
+  currentAnswer.value = answers[questions[index].id] || null
 }
 
 // 计算得分
 const calculateScores = () => {
-  // 重置得分
-  Object.keys(scores.value).forEach(key => {
-    scores.value[key] = 0
-  })
+  // 使用职业锚点计分规则
+  const result = calculateCareerAnchorScores(answers)
+  scores.value = result
   
-  // 计算每种类型的得分
-  Object.keys(answers).forEach(index => {
-    const questionType = quizQuestions.value[index].type
-    scores.value[questionType] += answers[index] / totalQuestions
-  })
+  // 计算得分排名
+  const sortedTypes = Object.entries(result)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0])
+  
+  topTypes.value = sortedTypes
 }
 
 // 获取类型标签
 const getTypeLabel = (type) => {
-  const labels = {
-    R: '实际型 (Realistic)',
-    I: '研究型 (Investigative)',
-    A: '艺术型 (Artistic)',
-    S: '社会型 (Social)',
-    E: '企业型 (Enterprising)',
-    C: '常规型 (Conventional)'
-  }
-  return labels[type]
+  return careerAnchorTypes[type].name
 }
 
 // 获取类型描述
 const getTypeDescription = (type) => {
-  const descriptions = {
-    R: '喜欢动手操作、制作、修理物品',
-    I: '喜欢研究、分析、探索新知识',
-    A: '具有创造力，喜欢艺术表现',
-    S: '喜欢与人交往，乐于助人',
-    E: '具有领导能力，善于组织管理',
-    C: '喜欢按规则办事，注重细节'
-  }
-  return descriptions[type]
+  return careerAnchorTypes[type].fullName
 }
 
 // 跳转到职业推荐页面
 const goToRecommendations = () => {
   // 将分数保存到 localStorage
-  localStorage.setItem('riasecScores', JSON.stringify(scores.value))
+  localStorage.setItem('careerAnchorScores', JSON.stringify(scores.value))
+  localStorage.setItem('primaryAnchorType', topTypes.value[0])
   router.push('/job-recommendations')
 }
 
@@ -255,7 +244,7 @@ const restartQuiz = () => {
   quizCompleted.value = false
   currentAnswer.value = null
   Object.keys(scores.value).forEach(key => {
-    scores.value[key] = 0
+    delete scores.value[key]
   })
   Object.keys(answeredQuestions).forEach(key => {
     delete answeredQuestions[key]
@@ -263,12 +252,12 @@ const restartQuiz = () => {
   Object.keys(answers).forEach(key => {
     delete answers[key]
   })
-  quizQuestions.value = getRandomQuestions()
+  topTypes.value = []
 }
 
-// 组件挂载时初始化题目
+// 组件挂载时初始化
 onMounted(() => {
-  quizQuestions.value = getRandomQuestions()
+  // 可以在这里添加其他初始化逻辑
 })
 </script>
 
@@ -351,7 +340,6 @@ onMounted(() => {
   font-size: 14px;
   color: #606266;
   margin-bottom: 10px;
-  cursor: help;
 }
 
 .preview-items {
@@ -402,7 +390,7 @@ onMounted(() => {
 
 .score-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 20px;
   margin: 30px 0;
 }
@@ -423,6 +411,72 @@ onMounted(() => {
   font-size: 14px;
   color: #606266;
   text-align: center;
+}
+
+.top-types {
+  margin: 30px 0;
+}
+
+.top-type-item {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f5f7fa;
+  text-align: left;
+}
+
+.rank {
+  font-size: 24px;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #409eff;
+  color: white;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.type-info h4 {
+  margin: 0 0 5px 0;
+  color: #303133;
+}
+
+.type-info p {
+  margin: 0 0 5px 0;
+  color: #606266;
+  font-style: italic;
+}
+
+.type-score {
+  font-weight: bold;
+  color: #409eff;
+}
+
+.type-description-detail {
+  margin: 30px 0;
+  text-align: left;
+}
+
+.primary-type-card {
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.primary-type-card h4 {
+  margin-top: 0;
+  color: #303133;
+}
+
+.primary-type-card p {
+  color: #606266;
+  line-height: 1.6;
 }
 
 .result-actions {
