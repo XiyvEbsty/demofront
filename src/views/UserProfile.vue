@@ -27,18 +27,6 @@
             <el-form-item label="手机号">
               <el-input v-model="userInfo.phone" />
             </el-form-item>
-            <el-form-item label="教育程度">
-              <el-select v-model="userInfo.education" placeholder="请选择">
-                <el-option label="高中" value="high_school" />
-                <el-option label="大专" value="college" />
-                <el-option label="本科" value="bachelor" />
-                <el-option label="硕士" value="master" />
-                <el-option label="博士" value="phd" />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="工作年限">
-              <el-input-number v-model="userInfo.workYears" :min="0" :max="50" />
-            </el-form-item>
             
             <el-form-item v-if="isEditing">
               <el-button type="primary" @click="saveProfile">保存</el-button>
@@ -251,9 +239,7 @@ const isEditing = ref(false)
 const userInfo = ref({
   username: '',
   email: '',
-  phone: '',
-  education: '',
-  workYears: 0
+  phone: ''
 })
 
 // 加载用户信息
@@ -263,9 +249,7 @@ const loadUserInfo = async () => {
     userInfo.value = {
       username: user.username,
       email: user.email || '',
-      phone: user.phone || '',
-      education: user.education || 'bachelor',
-      workYears: user.workYears || 0
+      phone: user.phone || ''
     }
   } catch (error) {
     ElMessage.error('获取用户信息失败')

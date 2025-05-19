@@ -74,6 +74,16 @@ export const userService = {
           console.log('获取到的令牌:', token);
           localStorage.setItem('token', token);
           
+          // 检查用户名是否是admin，设置对应角色
+          // 我们应该从JWT令牌中提取用户角色，但这里先使用简单的判断
+          if (username === 'admin') {
+            localStorage.setItem('userRole', 'admin');
+            console.log('设置管理员角色');
+          } else {
+            localStorage.setItem('userRole', 'user');
+            console.log('设置普通用户角色');
+          }
+          
           // 直接设置令牌到默认请求头中
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           

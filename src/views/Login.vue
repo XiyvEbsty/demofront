@@ -90,47 +90,19 @@ const handleLogin = async () => {
       const token = await userService.login(loginForm.username, loginForm.password)
       console.log('登录成功，获取到令牌:', token);
       
-      // 特殊处理管理员登录
-      if (loginForm.username === 'admin') {
-        localStorage.setItem('userRole', 'admin')
-        console.log('设置管理员角色');
-      } else {
-        localStorage.setItem('userRole', 'user')
-        console.log('设置普通用户角色');
-      }
+      // 不再需要在这里设置userRole，已在userService中处理
       
-      // 手动获取用户信息
-      console.log('使用直接axios调用获取用户信息');
       try {
-        const userResponse = await axios.get(`${API_BASE_URL}/users/current`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log('用户信息响应:', userResponse.data);
-        
-        if (userResponse.data.code === '200') {
-          const user = userResponse.data.data;
-          // 手动更新用户信息
-          updateUserInfo({
-            username: user.username,
-            nickname: user.username,
-            role: user.role,
-            email: user.email,
-            phone: user.phone,
-            avatar: user.avatar || userInfo.value.avatar
-          });
-          
-          console.log('用户信息已更新:', userInfo.value);
-        }
+        // 重新加载用户信息到全局状态
+        await loadCurrentUser();
+        console.log('用户信息已更新');
       } catch (userError) {
         console.error('获取用户信息失败:', userError);
       }
       
-      // 导航到相应页面
-      if (loginForm.username === 'admin') {
+      // 获取用户角色并导航到相应页面
+      const userRole = localStorage.getItem('userRole');
+      if (userRole === 'admin') {
         ElMessage.success('管理员登录成功')
         router.push('/manager')
       } else {

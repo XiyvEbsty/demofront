@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import Home from '../views/Home.vue'
 import JobQuiz from '../views/JobQuiz.vue'
 import JobRecommendations from '../views/JobRecommendations.vue'
@@ -127,6 +128,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - 职位推荐系统` : '职位推荐系统'
+  
+  // 检查是否是管理员路由
+  if (to.meta.isAdmin) {
+    const userRole = localStorage.getItem('userRole')
+    const token = localStorage.getItem('token')
+    
+    // 如果没有令牌或者不是管理员，重定向到登录页
+    if (!token || userRole !== 'admin') {
+      ElMessage.warning('需要管理员权限')
+      next('/login')
+      return
+    }
+  }
   
   // 权限验证
   if (to.meta.requiresAuth) {
