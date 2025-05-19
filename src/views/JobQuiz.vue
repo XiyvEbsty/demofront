@@ -1,91 +1,93 @@
 <template>
-  <div class="quiz-container">
-    <el-card v-if="!quizCompleted">
-      <template #header>
-        <div class="card-header">
-          <h2>职业兴趣测评</h2>
-          <div class="progress">题目进度: {{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</div>
-        </div>
-      </template>
+  <AppLayout>
+    <div class="quiz-container">
+      <el-card v-if="!quizCompleted">
+        <template #header>
+          <div class="card-header">
+            <h2>职业兴趣测评</h2>
+            <div class="progress">题目进度: {{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</div>
+          </div>
+        </template>
 
-      <div v-if="currentQuestion" class="question-section">
-        <div class="question-text">{{ currentQuestion.text }}</div>
-        <div class="options">
-          <el-radio-group v-model="currentAnswer" @change="handleAnswer">
-            <el-radio 
-              v-for="score in [5, 4, 3, 2, 1]" 
-              :key="score" 
-              :label="score"
-              class="option-item"
+        <div v-if="currentQuestion" class="question-section">
+          <div class="question-text">{{ currentQuestion.text }}</div>
+          <div class="options">
+            <el-radio-group v-model="currentAnswer" @change="handleAnswer">
+              <el-radio 
+                v-for="score in [5, 4, 3, 2, 1]" 
+                :key="score" 
+                :label="score"
+                class="option-item"
+              >
+                <div class="option-content">
+                  <span class="option-score">{{ score }}</span>
+                  <span class="option-text">{{ getOptionLabel(score) }}</span>
+                </div>
+              </el-radio>
+              </el-radio-group>
+          </div>
+
+          <div class="navigation-buttons">
+            <el-button 
+              @click="previousQuestion" 
+              :disabled="currentQuestionIndex === 0"
+              plain
             >
-              <div class="option-content">
-                <span class="option-score">{{ score }}</span>
-                <span class="option-text">{{ getOptionLabel(score) }}</span>
-              </div>
-            </el-radio>
-            </el-radio-group>
-        </div>
-
-        <div class="navigation-buttons">
-          <el-button 
-            @click="previousQuestion" 
-            :disabled="currentQuestionIndex === 0"
-            plain
-          >
-            上一题
-          </el-button>
-          <el-button 
-            @click="nextQuestion" 
-            type="primary"
-          >
-            {{ currentQuestionIndex === totalQuestions - 1 ? '提交' : '下一题' }}
-          </el-button>
-        </div>
-        </div>
-
-      <!-- 题目预览区（移到题目下方） -->
-      <div class="question-preview">
-        <div class="preview-title">整卷预览</div>
-        <div class="preview-items">
-          <div 
-            v-for="(_, index) in quizQuestions" 
-            :key="index" 
-            :class="['preview-item', {
-              'answered': answeredQuestions[index],
-              'current': currentQuestionIndex === index
-            }]"
-            @click="jumpToQuestion(index)"
+              上一题
+            </el-button>
+            <el-button 
+              @click="nextQuestion" 
+              type="primary"
             >
-              {{ index + 1 }}
+              {{ currentQuestionIndex === totalQuestions - 1 ? '提交' : '下一题' }}
+            </el-button>
+          </div>
+          </div>
+
+        <!-- 题目预览区（移到题目下方） -->
+        <div class="question-preview">
+          <div class="preview-title">整卷预览</div>
+          <div class="preview-items">
+            <div 
+              v-for="(_, index) in quizQuestions" 
+              :key="index" 
+              :class="['preview-item', {
+                'answered': answeredQuestions[index],
+                'current': currentQuestionIndex === index
+              }]"
+              @click="jumpToQuestion(index)"
+              >
+                {{ index + 1 }}
+            </div>
           </div>
         </div>
-      </div>
-    </el-card>
+      </el-card>
 
-    <el-card v-else class="result-card">
-      <template #header>
-        <div class="card-header">
-          <h2>测评结果</h2>
-        </div>
-      </template>
+      <el-card v-else class="result-card">
+        <template #header>
+          <div class="card-header">
+            <h2>测评结果</h2>
+          </div>
+        </template>
 
-      <div class="result-section">
-        <h3>您的霍兰德职业兴趣类型得分：</h3>
-        <div class="score-grid">
-          <div v-for="(score, type) in scores" :key="type" class="score-item">
-            <div class="type-label">{{ getTypeLabel(type) }}</div>
-            <el-progress type="dashboard" :percentage="Math.round(score * 20)" />
-            <div class="type-description">{{ getTypeDescription(type) }}</div>
+        <div class="result-section">
+          <h3>您的霍兰德职业兴趣类型得分：</h3>
+          <div class="score-grid">
+            <div v-for="(score, type) in scores" :key="type" class="score-item">
+              <div class="type-label">{{ getTypeLabel(type) }}</div>
+              <el-progress type="dashboard" :percentage="Math.round(score * 20)" />
+              <div class="type-description">{{ getTypeDescription(type) }}</div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <el-button type="primary" @click="goToRecommendations">查看职业推荐</el-button>
+            <el-button @click="restartQuiz">重新测评</el-button>
           </div>
         </div>
-
-        <div class="result-actions">
-          <el-button type="primary" @click="goToRecommendations">查看职业推荐</el-button>
-          <el-button @click="restartQuiz">重新测评</el-button>
-        </div>
-      </div>
-    </el-card>
-  </div>
+      </el-card>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -93,6 +95,7 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { questions } from '../data/questions'
 import { ElMessage } from 'element-plus'
+import AppLayout from '../components/AppLayout.vue'
 
 const router = useRouter()
 const totalQuestions = 20 // 设置要随机抽取的题目数量

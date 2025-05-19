@@ -1,219 +1,221 @@
 <template>
-  <div class="user-profile">
-    <h1>个人中心</h1>
-    <div class="profile-container">
-      <el-card class="profile-card">
-        <template #header>
-          <div class="card-header">
-            <h2>个人信息</h2>
-            <el-button type="primary" @click="isEditing = true" v-if="!isEditing">
-              编辑资料
-            </el-button>
-          </div>
-        </template>
-
-        <el-form 
-          :model="userInfo" 
-          label-width="100px"
-          :disabled="!isEditing"
-        >
-          <el-form-item label="用户名">
-            <el-input v-model="userInfo.username" />
-          </el-form-item>
-          <el-form-item label="邮箱">
-            <el-input v-model="userInfo.email" />
-          </el-form-item>
-          <el-form-item label="手机号">
-            <el-input v-model="userInfo.phone" />
-          </el-form-item>
-          <el-form-item label="教育程度">
-            <el-select v-model="userInfo.education" placeholder="请选择">
-              <el-option label="高中" value="high_school" />
-              <el-option label="大专" value="college" />
-              <el-option label="本科" value="bachelor" />
-              <el-option label="硕士" value="master" />
-              <el-option label="博士" value="phd" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="工作年限">
-            <el-input-number v-model="userInfo.workYears" :min="0" :max="50" />
-          </el-form-item>
-          
-          <el-form-item v-if="isEditing">
-            <el-button type="primary" @click="saveProfile">保存</el-button>
-            <el-button @click="cancelEdit">取消</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-
-      <el-card class="history-card">
-        <template #header>
-          <div class="card-header">
-            <h2>测评历史</h2>
-            <el-button type="primary" plain size="small" @click="goToQuiz">开始新测评</el-button>
-          </div>
-        </template>
-
-        <el-tabs type="border-card" class="history-tabs">
-          <el-tab-pane label="霍兰德测评历史">
-            <el-empty v-if="hollandHistory.length === 0" description="暂无测评历史" />
-            <el-timeline v-else>
-              <el-timeline-item
-                v-for="(history, index) in hollandHistory"
-                :key="index"
-                :timestamp="history.date"
-                placement="top"
-                type="primary"
-              >
-                <el-card class="history-item-card">
-                  <div class="history-card-header">
-                    <h4>霍兰德兴趣类型测评结果</h4>
-                    <el-button 
-                      type="success" 
-                      size="small" 
-                      @click="viewJobRecommendations(history, 'holland')"
-                      plain
-                    >
-                      查看推荐职位
-                    </el-button>
-                  </div>
-                  
-                  <div class="result-chart">
-                    <div class="radar-chart" :ref="el => setChartRef(el, 'holland', index)"></div>
-                  </div>
-                  
-                  <div class="result-tags">
-                    <el-tag 
-                      v-for="(score, type) in history.scores" 
-                      :key="type"
-                      :type="getHollandTagType(type)"
-                      effect="light"
-                    >
-                      {{ getHollandTypeName(type) }}: {{ score }}
-                    </el-tag>
-                  </div>
-                  
-                  <div class="result-description">
-                    <p><strong>主导类型：</strong>{{ getPrimaryType(history.scores, 'holland') }}</p>
-                    <p class="type-description">{{ getTypeDescription(getPrimaryType(history.scores, 'holland'), 'holland') }}</p>
-                  </div>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
-          </el-tab-pane>
-          
-          <el-tab-pane label="职业锚点测评历史">
-            <el-empty v-if="anchorHistory.length === 0" description="暂无测评历史" />
-            <el-timeline v-else>
-              <el-timeline-item
-                v-for="(history, index) in anchorHistory"
-                :key="index"
-                :timestamp="history.date"
-                placement="top"
-                type="warning"
-              >
-                <el-card class="history-item-card">
-                  <div class="history-card-header">
-                    <h4>职业锚点测评结果</h4>
-                    <el-button 
-                      type="success" 
-                      size="small" 
-                      @click="viewJobRecommendations(history, 'anchor')"
-                      plain
-                    >
-                      查看推荐职位
-                    </el-button>
-                  </div>
-                  
-                  <div class="result-chart">
-                    <div class="bar-chart" :ref="el => setChartRef(el, 'anchor', index)"></div>
-                  </div>
-                  
-                  <div class="result-tags">
-                    <el-tag 
-                      v-for="(score, type) in history.scores" 
-                      :key="type"
-                      :type="getAnchorTagType(type)"
-                      effect="light"
-                    >
-                      {{ getAnchorTypeName(type) }}: {{ score }}
-                    </el-tag>
-                  </div>
-                  
-                  <div class="result-description">
-                    <p><strong>主导类型：</strong>{{ getPrimaryType(history.scores, 'anchor') }}</p>
-                    <p class="type-description">{{ getTypeDescription(getPrimaryType(history.scores, 'anchor'), 'anchor') }}</p>
-                  </div>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
-          </el-tab-pane>
-        </el-tabs>
-      </el-card>
-    </div>
-    
-    <!-- 职位推荐对话框 -->
-    <el-dialog
-      v-model="jobDialogVisible"
-      :title="'根据' + (currentTestType === 'holland' ? '霍兰德兴趣类型' : '职业锚点') + '测评结果的职位推荐'"
-      width="70%"
-    >
-      <div class="job-recommendation-container">
-        <el-empty v-if="recommendedJobs.length === 0" description="暂无推荐职位" />
-        <div v-else class="job-cards">
-          <el-card 
-            v-for="job in recommendedJobs" 
-            :key="job.id" 
-            class="job-card"
-            shadow="hover"
-          >
-            <div class="job-card-header">
-              <h3>{{ job.title }}</h3>
-              <el-tag size="small">{{ job.industry }}</el-tag>
+  <AppLayout>
+    <div class="user-profile">
+      <h1>个人中心</h1>
+      <div class="profile-container">
+        <el-card class="profile-card">
+          <template #header>
+            <div class="card-header">
+              <h2>个人信息</h2>
+              <el-button type="primary" @click="isEditing = true" v-if="!isEditing">
+                编辑资料
+              </el-button>
             </div>
+          </template>
+
+          <el-form 
+            :model="userInfo" 
+            label-width="100px"
+            :disabled="!isEditing"
+          >
+            <el-form-item label="用户名">
+              <el-input v-model="userInfo.username" />
+            </el-form-item>
+            <el-form-item label="邮箱">
+              <el-input v-model="userInfo.email" />
+            </el-form-item>
+            <el-form-item label="手机号">
+              <el-input v-model="userInfo.phone" />
+            </el-form-item>
+            <el-form-item label="教育程度">
+              <el-select v-model="userInfo.education" placeholder="请选择">
+                <el-option label="高中" value="high_school" />
+                <el-option label="大专" value="college" />
+                <el-option label="本科" value="bachelor" />
+                <el-option label="硕士" value="master" />
+                <el-option label="博士" value="phd" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="工作年限">
+              <el-input-number v-model="userInfo.workYears" :min="0" :max="50" />
+            </el-form-item>
             
-            <div class="job-tags">
-              <div class="holland-tags">
-                <el-tag 
-                  v-for="type in job.hollandTypes" 
-                  :key="type"
-                  :type="getHollandTagType(type)"
-                  size="small"
-                  effect="plain"
+            <el-form-item v-if="isEditing">
+              <el-button type="primary" @click="saveProfile">保存</el-button>
+              <el-button @click="cancelEdit">取消</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+
+        <el-card class="history-card">
+          <template #header>
+            <div class="card-header">
+              <h2>测评历史</h2>
+              <el-button type="primary" plain size="small" @click="goToQuiz">开始新测评</el-button>
+            </div>
+          </template>
+
+          <el-tabs type="border-card" class="history-tabs">
+            <el-tab-pane label="霍兰德测评历史">
+              <el-empty v-if="hollandHistory.length === 0" description="暂无测评历史" />
+              <el-timeline v-else>
+                <el-timeline-item
+                  v-for="(history, index) in hollandHistory"
+                  :key="index"
+                  :timestamp="history.date"
+                  placement="top"
+                  type="primary"
                 >
-                  {{ getHollandTypeName(type) }}
-                </el-tag>
+                  <el-card class="history-item-card">
+                    <div class="history-card-header">
+                      <h4>霍兰德兴趣类型测评结果</h4>
+                      <el-button 
+                        type="success" 
+                        size="small" 
+                        @click="viewJobRecommendations(history, 'holland')"
+                        plain
+                      >
+                        查看推荐职位
+                      </el-button>
+                    </div>
+                    
+                    <div class="result-chart">
+                      <div class="radar-chart" :ref="el => setChartRef(el, 'holland', index)"></div>
+                    </div>
+                    
+                    <div class="result-tags">
+                      <el-tag 
+                        v-for="(score, type) in history.scores" 
+                        :key="type"
+                        :type="getHollandTagType(type)"
+                        effect="light"
+                      >
+                        {{ getHollandTypeName(type) }}: {{ score }}
+                      </el-tag>
+                    </div>
+                    
+                    <div class="result-description">
+                      <p><strong>主导类型：</strong>{{ getPrimaryType(history.scores, 'holland') }}</p>
+                      <p class="type-description">{{ getTypeDescription(getPrimaryType(history.scores, 'holland'), 'holland') }}</p>
+                    </div>
+                  </el-card>
+                </el-timeline-item>
+              </el-timeline>
+            </el-tab-pane>
+            
+            <el-tab-pane label="职业锚点测评历史">
+              <el-empty v-if="anchorHistory.length === 0" description="暂无测评历史" />
+              <el-timeline v-else>
+                <el-timeline-item
+                  v-for="(history, index) in anchorHistory"
+                  :key="index"
+                  :timestamp="history.date"
+                  placement="top"
+                  type="warning"
+                >
+                  <el-card class="history-item-card">
+                    <div class="history-card-header">
+                      <h4>职业锚点测评结果</h4>
+                      <el-button 
+                        type="success" 
+                        size="small" 
+                        @click="viewJobRecommendations(history, 'anchor')"
+                        plain
+                      >
+                        查看推荐职位
+                      </el-button>
+                    </div>
+                    
+                    <div class="result-chart">
+                      <div class="bar-chart" :ref="el => setChartRef(el, 'anchor', index)"></div>
+                    </div>
+                    
+                    <div class="result-tags">
+                      <el-tag 
+                        v-for="(score, type) in history.scores" 
+                        :key="type"
+                        :type="getAnchorTagType(type)"
+                        effect="light"
+                      >
+                        {{ getAnchorTypeName(type) }}: {{ score }}
+                      </el-tag>
+                    </div>
+                    
+                    <div class="result-description">
+                      <p><strong>主导类型：</strong>{{ getPrimaryType(history.scores, 'anchor') }}</p>
+                      <p class="type-description">{{ getTypeDescription(getPrimaryType(history.scores, 'anchor'), 'anchor') }}</p>
+                    </div>
+                  </el-card>
+                </el-timeline-item>
+              </el-timeline>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </div>
+      
+      <!-- 职位推荐对话框 -->
+      <el-dialog
+        v-model="jobDialogVisible"
+        :title="'根据' + (currentTestType === 'holland' ? '霍兰德兴趣类型' : '职业锚点') + '测评结果的职位推荐'"
+        width="70%"
+      >
+        <div class="job-recommendation-container">
+          <el-empty v-if="recommendedJobs.length === 0" description="暂无推荐职位" />
+          <div v-else class="job-cards">
+            <el-card 
+              v-for="job in recommendedJobs" 
+              :key="job.id" 
+              class="job-card"
+              shadow="hover"
+            >
+              <div class="job-card-header">
+                <h3>{{ job.title }}</h3>
+                <el-tag size="small">{{ job.industry }}</el-tag>
               </div>
               
-              <div class="anchor-tags">
-                <el-tag 
-                  v-for="type in job.anchorTypes" 
-                  :key="type"
-                  :type="getAnchorTagType(type)"
-                  size="small"
-                  effect="plain"
-                >
-                  {{ getAnchorTypeName(type) }}
-                </el-tag>
+              <div class="job-tags">
+                <div class="holland-tags">
+                  <el-tag 
+                    v-for="type in job.hollandTypes" 
+                    :key="type"
+                    :type="getHollandTagType(type)"
+                    size="small"
+                    effect="plain"
+                  >
+                    {{ getHollandTypeName(type) }}
+                  </el-tag>
+                </div>
+                
+                <div class="anchor-tags">
+                  <el-tag 
+                    v-for="type in job.anchorTypes" 
+                    :key="type"
+                    :type="getAnchorTagType(type)"
+                    size="small"
+                    effect="plain"
+                  >
+                    {{ getAnchorTypeName(type) }}
+                  </el-tag>
+                </div>
               </div>
-            </div>
-            
-            <p class="job-description">{{ job.description }}</p>
-            
-            <div class="job-match">
-              <span>匹配度</span>
-              <el-progress :percentage="job.matchScore" :status="getMatchStatus(job.matchScore)" />
-            </div>
-            
-            <div class="job-actions">
-              <el-button type="primary" size="small" @click="viewJobDetail(job)">查看详情</el-button>
-              <el-button plain size="small" @click="saveJob(job)">收藏</el-button>
-            </div>
-          </el-card>
+              
+              <p class="job-description">{{ job.description }}</p>
+              
+              <div class="job-match">
+                <span>匹配度</span>
+                <el-progress :percentage="job.matchScore" :status="getMatchStatus(job.matchScore)" />
+              </div>
+              
+              <div class="job-actions">
+                <el-button type="primary" size="small" @click="viewJobDetail(job)">查看详情</el-button>
+                <el-button plain size="small" @click="saveJob(job)">收藏</el-button>
+              </div>
+            </el-card>
+          </div>
         </div>
-      </div>
-    </el-dialog>
-  </div>
+      </el-dialog>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -229,6 +231,9 @@ import {
   GridComponent 
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
+import AppLayout from '../components/AppLayout.vue'
+import { userService } from '../api/userService'
+import { loadCurrentUser } from '../store/user'
 
 // 注册必要的组件
 echarts.use([
@@ -244,12 +249,51 @@ echarts.use([
 const router = useRouter()
 const isEditing = ref(false)
 const userInfo = ref({
-  username: '张三',
-  email: 'zhangsan@example.com',
-  phone: '13800138000',
-  education: 'bachelor',
-  workYears: 3
+  username: '',
+  email: '',
+  phone: '',
+  education: '',
+  workYears: 0
 })
+
+// 加载用户信息
+const loadUserInfo = async () => {
+  try {
+    const user = await userService.getCurrentUser()
+    userInfo.value = {
+      username: user.username,
+      email: user.email || '',
+      phone: user.phone || '',
+      education: user.education || 'bachelor',
+      workYears: user.workYears || 0
+    }
+  } catch (error) {
+    ElMessage.error('获取用户信息失败')
+    console.error('获取用户信息失败:', error)
+  }
+}
+
+// 保存个人资料
+const saveProfile = async () => {
+  try {
+    // 调用API保存用户信息
+    await userService.updateUserInfo(userInfo.value)
+    isEditing.value = false
+    ElMessage.success('保存成功')
+    
+    // 重新加载用户信息到全局状态
+    await loadCurrentUser()
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  isEditing.value = false
+  // 重新加载用户信息
+  loadUserInfo()
+}
 
 // 霍兰德测评历史数据
 const hollandHistory = ref([
@@ -632,26 +676,19 @@ const goToQuiz = () => {
   router.push('/job-quiz')
 }
 
-const saveProfile = () => {
-  // 这里添加保存个人信息的逻辑
-  ElMessage.success('保存成功')
-  isEditing.value = false
-}
-
-const cancelEdit = () => {
-  // 重置表单数据
-  userInfo.value = {
-    username: '张三',
-    email: 'zhangsan@example.com',
-    phone: '13800138000',
-    education: 'bachelor',
-    workYears: 3
+// 在组件挂载时获取用户信息
+onMounted(async () => {
+  // 检查用户是否登录
+  if (!userService.isLoggedIn()) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
   }
-  isEditing.value = false
-}
-
-// 组件挂载后初始化图表
-onMounted(() => {
+  
+  // 加载用户信息
+  await loadUserInfo()
+  
+  // 初始化图表
   nextTick(() => {
     // 初始化所有霍兰德雷达图
     hollandChartRefs.value = new Array(hollandHistory.value.length)

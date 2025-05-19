@@ -1,111 +1,113 @@
 <template>
-  <div class="quiz-container">
-    <el-card v-if="!quizCompleted">
-      <template #header>
-        <div class="card-header">
-          <h2>职业锚点测评</h2>
-          <div class="progress">题目进度: {{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</div>
-        </div>
-      </template>
+  <AppLayout>
+    <div class="quiz-container">
+      <el-card v-if="!quizCompleted">
+        <template #header>
+          <div class="card-header">
+            <h2>职业锚点测评</h2>
+            <div class="progress">题目进度: {{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</div>
+          </div>
+        </template>
 
-      <div v-if="currentQuestion" class="question-section">
-        <div class="question-text">{{ currentQuestion.text }}</div>
-        <div class="options">
-          <el-radio-group v-model="currentAnswer" @change="handleAnswer">
-            <el-radio 
-              v-for="option in options" 
-              :key="option.value" 
-              :label="option.value"
-              class="option-item"
+        <div v-if="currentQuestion" class="question-section">
+          <div class="question-text">{{ currentQuestion.text }}</div>
+          <div class="options">
+            <el-radio-group v-model="currentAnswer" @change="handleAnswer">
+              <el-radio 
+                v-for="option in options" 
+                :key="option.value" 
+                :label="option.value"
+                class="option-item"
+              >
+                <div class="option-content">
+                  <span class="option-score">{{ option.value }}</span>
+                  <span class="option-text">{{ option.label }}</span>
+                </div>
+              </el-radio>
+            </el-radio-group>
+          </div>
+
+          <div class="navigation-buttons">
+            <el-button 
+              @click="previousQuestion" 
+              :disabled="currentQuestionIndex === 0"
+              plain
             >
-              <div class="option-content">
-                <span class="option-score">{{ option.value }}</span>
-                <span class="option-text">{{ option.label }}</span>
-              </div>
-            </el-radio>
-          </el-radio-group>
-        </div>
-
-        <div class="navigation-buttons">
-          <el-button 
-            @click="previousQuestion" 
-            :disabled="currentQuestionIndex === 0"
-            plain
-          >
-            上一题
-          </el-button>
-          <el-button 
-            @click="nextQuestion" 
-            type="primary"
-          >
-            {{ currentQuestionIndex === totalQuestions - 1 ? '提交' : '下一题' }}
-          </el-button>
-        </div>
-      </div>
-
-      <!-- 题目预览区（在题目下方） -->
-      <div class="question-preview">
-        <div class="preview-title">整卷预览</div>
-        <div class="preview-items">
-          <div 
-            v-for="(_, index) in questions" 
-            :key="index" 
-            :class="['preview-item', {
-              'answered': answeredQuestions[index + 1],
-              'current': currentQuestionIndex === index
-            }]"
-            @click="jumpToQuestion(index)"
-          >
-            {{ index + 1 }}
-          </div>
-        </div>
-      </div>
-    </el-card>
-
-    <el-card v-else class="result-card">
-      <template #header>
-        <div class="card-header">
-          <h2>测评结果</h2>
-        </div>
-      </template>
-
-      <div class="result-section">
-        <h3>您的职业锚点类型得分：</h3>
-        <div class="score-grid">
-          <div v-for="(score, type) in scores" :key="type" class="score-item">
-            <div class="type-label">{{ getTypeLabel(type) }}</div>
-            <el-progress type="dashboard" :percentage="Math.round(score / maxPossibleScore * 100)" />
-            <div class="type-description">{{ getTypeDescription(type) }}</div>
+              上一题
+            </el-button>
+            <el-button 
+              @click="nextQuestion" 
+              type="primary"
+            >
+              {{ currentQuestionIndex === totalQuestions - 1 ? '提交' : '下一题' }}
+            </el-button>
           </div>
         </div>
 
-        <div class="top-types">
-          <h3>您的主导职业锚点类型：</h3>
-          <div v-for="(type, index) in topTypes" :key="index" class="top-type-item">
-            <div class="rank">{{ index + 1 }}</div>
-            <div class="type-info">
-              <h4>{{ careerAnchorTypes[type].name }}</h4>
-              <p>{{ careerAnchorTypes[type].fullName }}</p>
-              <div class="type-score">得分: {{ scores[type] }}</div>
+        <!-- 题目预览区（在题目下方） -->
+        <div class="question-preview">
+          <div class="preview-title">整卷预览</div>
+          <div class="preview-items">
+            <div 
+              v-for="(_, index) in questions" 
+              :key="index" 
+              :class="['preview-item', {
+                'answered': answeredQuestions[index + 1],
+                'current': currentQuestionIndex === index
+              }]"
+              @click="jumpToQuestion(index)"
+            >
+              {{ index + 1 }}
             </div>
           </div>
         </div>
+      </el-card>
 
-        <div class="type-description-detail">
-          <h3>主导类型详细说明：</h3>
-          <div class="primary-type-card">
-            <h4>{{ careerAnchorTypes[topTypes[0]].name }}</h4>
-            <p>{{ careerAnchorTypes[topTypes[0]].description }}</p>
+      <el-card v-else class="result-card">
+        <template #header>
+          <div class="card-header">
+            <h2>测评结果</h2>
+          </div>
+        </template>
+
+        <div class="result-section">
+          <h3>您的职业锚点类型得分：</h3>
+          <div class="score-grid">
+            <div v-for="(score, type) in scores" :key="type" class="score-item">
+              <div class="type-label">{{ getTypeLabel(type) }}</div>
+              <el-progress type="dashboard" :percentage="Math.round(score / maxPossibleScore * 100)" />
+              <div class="type-description">{{ getTypeDescription(type) }}</div>
+            </div>
+          </div>
+
+          <div class="top-types">
+            <h3>您的主导职业锚点类型：</h3>
+            <div v-for="(type, index) in topTypes" :key="index" class="top-type-item">
+              <div class="rank">{{ index + 1 }}</div>
+              <div class="type-info">
+                <h4>{{ careerAnchorTypes[type].name }}</h4>
+                <p>{{ careerAnchorTypes[type].fullName }}</p>
+                <div class="type-score">得分: {{ scores[type] }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="type-description-detail">
+            <h3>主导类型详细说明：</h3>
+            <div class="primary-type-card">
+              <h4>{{ careerAnchorTypes[topTypes[0]].name }}</h4>
+              <p>{{ careerAnchorTypes[topTypes[0]].description }}</p>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <el-button type="primary" @click="goToRecommendations">查看职业推荐</el-button>
+            <el-button @click="restartQuiz">重新测评</el-button>
           </div>
         </div>
-
-        <div class="result-actions">
-          <el-button type="primary" @click="goToRecommendations">查看职业推荐</el-button>
-          <el-button @click="restartQuiz">重新测评</el-button>
-        </div>
-      </div>
-    </el-card>
-  </div>
+      </el-card>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -118,6 +120,7 @@ import {
   careerAnchorTypes,
   calculateCareerAnchorScores 
 } from '../data/career-anchor-questions'
+import AppLayout from '../components/AppLayout.vue'
 
 const router = useRouter()
 const questions = careerAnchorQuestions

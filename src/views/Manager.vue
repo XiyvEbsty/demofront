@@ -6,8 +6,18 @@
         <img style="width: 40px;height: 40px;border-radius: 50%" src="@/assets/imgs/logo.png" alt="">
         <span style="font-size: 20px; font-weight: bold;color: #375959;margin-left: 15px">职位推荐系统</span>
       </div>
-      <div style="flex:1;display: flex;align-items: center;padding-left:20px ;border-bottom: 1px solid #ddd">
-        {{ currentRoute }}
+      <div style="flex:1;display: flex;align-items: center;padding-left:20px;border-bottom: 1px solid #ddd">
+        <div style="display: flex; align-items: center;">
+          <el-button 
+            type="primary" 
+            plain 
+            size="small"
+            @click="router.push('/')"
+          >
+            <el-icon style="margin-right: 5px;"><HomeFilled /></el-icon>
+            返回主页
+          </el-button>
+        </div>
       </div>
       <!-- 头像 -->
       <div style="width: fit-content;padding-right: 20px;display: flex;align-items: center;border-bottom: 1px solid #ddd">
@@ -79,7 +89,7 @@
 </template>
 
 <script setup>
-import {Document, Location, User, Briefcase, DataAnalysis, Connection} from "@element-plus/icons-vue";
+import {Document, Location, User, Briefcase, DataAnalysis, Connection, HomeFilled} from "@element-plus/icons-vue";
 import { useRouter, useRoute } from 'vue-router'
 import { userInfo } from '@/store/user'
 import { computed } from 'vue'

@@ -1,76 +1,79 @@
 <template>
-  <div class="result-container">
-    <el-card class="result-card">
-      <template #header>
-        <div class="card-header">
-          <h2>职业测评结果</h2>
-          <el-button type="primary" @click="router.push('/job-quiz')">重新测评</el-button>
-        </div>
-      </template>
+  <AppLayout>
+    <div class="result-container">
+      <el-card class="result-card">
+        <template #header>
+          <div class="card-header">
+            <h2>职业测评结果</h2>
+            <el-button type="primary" @click="router.push('/job-quiz')">重新测评</el-button>
+          </div>
+        </template>
 
-      <!-- 类型得分展示 -->
-      <div class="type-scores">
-        <h3>您的职业倾向得分</h3>
-        <div class="score-chart">
-          <div v-for="(score, type) in typeScores" :key="type" class="score-item">
-            <div class="type-label">{{ getTypeLabel(type) }}</div>
-            <el-progress 
-              :percentage="score" 
-              :color="getTypeColor(type)"
-              :format="format"
-            />
+        <!-- 类型得分展示 -->
+        <div class="type-scores">
+          <h3>您的职业倾向得分</h3>
+          <div class="score-chart">
+            <div v-for="(score, type) in typeScores" :key="type" class="score-item">
+              <div class="type-label">{{ getTypeLabel(type) }}</div>
+              <el-progress 
+                :percentage="score" 
+                :color="getTypeColor(type)"
+                :format="format"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 主要职业倾向 -->
-      <div class="dominant-types">
-        <h3>主要职业倾向</h3>
-        <div class="type-tags">
-          <el-tag 
-            v-for="type in dominantTypes" 
-            :key="type"
-            :type="getTagType(type)"
-            size="large"
-          >
-            {{ getTypeLabel(type) }}
-          </el-tag>
+        <!-- 主要职业倾向 -->
+        <div class="dominant-types">
+          <h3>主要职业倾向</h3>
+          <div class="type-tags">
+            <el-tag 
+              v-for="type in dominantTypes" 
+              :key="type"
+              :type="getTagType(type)"
+              size="large"
+            >
+              {{ getTypeLabel(type) }}
+            </el-tag>
+          </div>
         </div>
-      </div>
 
-      <!-- 职业推荐 -->
-      <div class="job-recommendations">
-        <h3>推荐职业</h3>
-        <el-row :gutter="20">
-          <el-col :span="8" v-for="(job, index) in recommendedJobs" :key="index">
-            <el-card class="job-card" shadow="hover">
-              <h4>{{ job.title }}</h4>
-              <p class="job-description">{{ job.description }}</p>
-              <div class="job-requirements">
-                <h5>所需能力：</h5>
-                <el-tag 
-                  v-for="(req, idx) in job.requirements" 
-                  :key="idx"
-                  size="small"
-                  class="requirement-tag"
-                >
-                  {{ req }}
-                </el-tag>
-              </div>
-              <div class="job-salary">
-                <el-tag type="success">薪资范围：{{ job.salary }}</el-tag>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-    </el-card>
-  </div>
+        <!-- 职业推荐 -->
+        <div class="job-recommendations">
+          <h3>推荐职业</h3>
+          <el-row :gutter="20">
+            <el-col :span="8" v-for="(job, index) in recommendedJobs" :key="index">
+              <el-card class="job-card" shadow="hover">
+                <h4>{{ job.title }}</h4>
+                <p class="job-description">{{ job.description }}</p>
+                <div class="job-requirements">
+                  <h5>所需能力：</h5>
+                  <el-tag 
+                    v-for="(req, idx) in job.requirements" 
+                    :key="idx"
+                    size="small"
+                    class="requirement-tag"
+                  >
+                    {{ req }}
+                  </el-tag>
+                </div>
+                <div class="job-salary">
+                  <el-tag type="success">薪资范围：{{ job.salary }}</el-tag>
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+        </div>
+      </el-card>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import AppLayout from '../components/AppLayout.vue'
 
 const router = useRouter()
 

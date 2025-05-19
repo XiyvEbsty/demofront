@@ -24,7 +24,7 @@
           <el-dropdown trigger="hover">
             <div class="user-info">
               <el-avatar :size="32" :src="userInfo.avatar"></el-avatar>
-              <span class="username">{{ userInfo.nickname }}</span>
+              <span class="username">{{ userInfo.nickname || userInfo.username }}</span>
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </div>
             <template #dropdown>
@@ -49,14 +49,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { userInfo } from '../store/user'
+import { userInfo, loadCurrentUser } from '../store/user'
+import { userService } from '../api/userService'
 import { ArrowDown } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
 // 用户登录状态
 const isLoggedIn = computed(() => {
-  return localStorage.getItem('token') !== null
+  return userService.isLoggedIn()
 })
 
 // 检查用户角色
@@ -76,8 +77,7 @@ const handleLogout = () => {
     }
   ).then(() => {
     // 清除登录状态
-    localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
+    userService.logout()
     // 跳转到首页
     router.push('/')
   }).catch(() => {
@@ -85,9 +85,23 @@ const handleLogout = () => {
   })
 }
 
-// 在组件挂载时检查登录状态
-onMounted(() => {
-  // 如果有必要，可以在这里添加其他初始化逻辑
+// 在组件挂载时检查登录状态并加载用户信息
+onMounted(async () => {
+  console.log('AppLayout组件挂载');
+  console.log('当前登录状态:', isLoggedIn.value);
+  
+  if (isLoggedIn.value) {
+    console.log('用户已登录，开始加载用户信息');
+    try {
+      const user = await loadCurrentUser();
+      console.log('加载用户信息结果:', user ? '成功' : '失败');
+      console.log('当前用户信息:', userInfo.value);
+    } catch (error) {
+      console.error('AppLayout加载用户信息出错:', error);
+    }
+  } else {
+    console.log('用户未登录，不加载用户信息');
+  }
 })
 </script>
 

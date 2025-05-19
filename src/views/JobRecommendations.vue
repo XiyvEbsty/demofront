@@ -1,193 +1,196 @@
 <template>
-  <div class="job-recommendations">
-    <h1>最佳职位推荐</h1>
-    
-    <!-- 测评结果提示 -->
-    <div v-if="!hasTestResults" class="no-results-tip">
-      <el-alert
-        title="您尚未完成职业测评"
-        type="warning"
-        description="请完成荷兰德职业兴趣测评和职业锚点测评，以获取更精准的职位推荐"
-        show-icon
-        :closable="false"
-      />
-      <div class="tip-actions">
-        <el-button type="primary" @click="router.push('/job-quiz')">去完成荷兰德测评</el-button>
-        <el-button type="primary" @click="router.push('/career-anchor-quiz')">去完成职业锚点测评</el-button>
-      </div>
-    </div>
-    
-    <!-- 测评结果概览 -->
-    <div v-if="hasTestResults" class="result-summary">
-      <el-card class="summary-card">
-        <template #header>
-          <div class="card-header">
-            <span>测评结果概览</span>
-            <el-button text @click="showAssessmentDetails = true">查看详情</el-button>
-          </div>
-        </template>
-        
-        <div class="summary-content">
-          <div class="summary-item">
-            <h3>荷兰德职业兴趣主导类型</h3>
-            <div class="type-badges">
-              <el-tag 
-                v-for="(type, index) in topHollandTypes" 
-                :key="index"
-                :type="getTagType(index)"
-                effect="dark"
-              >
-                {{ getHollandTypeLabel(type) }}
-              </el-tag>
-            </div>
-          </div>
-          
-          <div class="summary-item">
-            <h3>职业锚点主导类型</h3>
-            <div class="type-badges">
-              <el-tag 
-                v-for="(type, index) in topAnchorTypes" 
-                :key="index"
-                :type="getTagType(index)"
-                effect="dark"
-              >
-                {{ getAnchorTypeLabel(type) }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
-      </el-card>
-    </div>
-    
-    <!-- 职位推荐列表 -->
-    <div class="filter-section">
-      <el-select v-model="selectedIndustry" placeholder="选择行业" clearable @change="filterJobs">
-        <el-option
-          v-for="industry in industries"
-          :key="industry"
-          :label="industry"
-          :value="industry"
+  <AppLayout>
+    <div class="job-recommendations">
+      <h1>最佳职位推荐</h1>
+      
+      <!-- 测评结果提示 -->
+      <div v-if="!hasTestResults" class="no-results-tip">
+        <el-alert
+          title="您尚未完成职业测评"
+          type="warning"
+          description="请完成荷兰德职业兴趣测评和职业锚点测评，以获取更精准的职位推荐"
+          show-icon
+          :closable="false"
         />
-      </el-select>
-    </div>
-    
-    <div class="recommendations-container">
-      <el-row :gutter="20">
-        <el-col :span="8" v-for="(job, index) in displayedJobs" :key="index">
-          <el-card class="job-card" shadow="hover" @click="searchJobOnBoss(job.title)" style="cursor: pointer;">
-            <div class="match-score">
-              <span class="score-label">匹配度</span>
-              <el-progress
-                type="circle"
-                :percentage="Math.round(job.matchScore)"
-                :color="getMatchScoreColor(job.matchScore)"
-                :width="50"
-              />
+        <div class="tip-actions">
+          <el-button type="primary" @click="router.push('/job-quiz')">去完成荷兰德测评</el-button>
+          <el-button type="primary" @click="router.push('/career-anchor-quiz')">去完成职业锚点测评</el-button>
+        </div>
+      </div>
+      
+      <!-- 测评结果概览 -->
+      <div v-if="hasTestResults" class="result-summary">
+        <el-card class="summary-card">
+          <template #header>
+            <div class="card-header">
+              <span>测评结果概览</span>
+              <el-button text @click="showAssessmentDetails = true">查看详情</el-button>
             </div>
-            
-            <h3>{{ job.title }}</h3>
-            <div class="industry-label">{{ job.industry }}</div>
-            
-            <div class="job-tags">
-              <el-tag v-for="(tag, idx) in job.tags" :key="idx" :type="tag.type">
-                {{ tag.text }}
-              </el-tag>
-            </div>
-            
-            <p class="job-salary">{{ job.salary }}</p>
-            <p class="job-description">{{ job.description }}</p>
-            
-            <div class="divider"></div>
-            
-            <div class="job-detail-section">
-              <div class="section-title">技术要求</div>
-              <p>{{ job.technicalRequirements }}</p>
-            </div>
-            
-            <div class="job-detail-section">
-              <div class="section-title">能力要求</div>
-              <p>{{ job.skillRequirements }}</p>
-            </div>
-            
-            <div class="job-requirements">
-              <div class="section-title">核心技能：</div>
-              <el-tag 
-                v-for="(skill, idx) in job.requirements" 
-                :key="idx"
-                size="small"
-                class="requirement-tag"
-              >
-                {{ skill }}
-              </el-tag>
-            </div>
-            
-            <div class="job-types">
-              <div class="types-section">
-                <span class="types-label">荷兰德类型：</span>
+          </template>
+          
+          <div class="summary-content">
+            <div class="summary-item">
+              <h3>荷兰德职业兴趣主导类型</h3>
+              <div class="type-badges">
                 <el-tag 
-                  v-for="(type, idx) in job.hollandTypes" 
-                  :key="idx"
-                  size="small"
-                  type="success"
+                  v-for="(type, index) in topHollandTypes" 
+                  :key="index"
+                  :type="getTagType(index)"
+                  effect="dark"
                 >
-                  {{ getHollandTypeShort(type) }}
+                  {{ getHollandTypeLabel(type) }}
+                </el-tag>
+              </div>
+            </div>
+            
+            <div class="summary-item">
+              <h3>职业锚点主导类型</h3>
+              <div class="type-badges">
+                <el-tag 
+                  v-for="(type, index) in topAnchorTypes" 
+                  :key="index"
+                  :type="getTagType(index)"
+                  effect="dark"
+                >
+                  {{ getAnchorTypeLabel(type) }}
+                </el-tag>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </div>
+      
+      <!-- 职位推荐列表 -->
+      <div class="filter-section">
+        <el-select v-model="selectedIndustry" placeholder="选择行业" clearable @change="filterJobs">
+          <el-option
+            v-for="industry in industries"
+            :key="industry"
+            :label="industry"
+            :value="industry"
+          />
+        </el-select>
+      </div>
+      
+      <div class="recommendations-container">
+        <el-row :gutter="20">
+          <el-col :span="8" v-for="(job, index) in displayedJobs" :key="index">
+            <el-card class="job-card" shadow="hover" @click="searchJobOnBoss(job.title)" style="cursor: pointer;">
+              <div class="match-score">
+                <span class="score-label">匹配度</span>
+                <el-progress
+                  type="circle"
+                  :percentage="Math.round(job.matchScore)"
+                  :color="getMatchScoreColor(job.matchScore)"
+                  :width="50"
+                />
+              </div>
+              
+              <h3>{{ job.title }}</h3>
+              <div class="industry-label">{{ job.industry }}</div>
+              
+              <div class="job-tags">
+                <el-tag v-for="(tag, idx) in job.tags" :key="idx" :type="tag.type">
+                  {{ tag.text }}
                 </el-tag>
               </div>
               
-              <div class="types-section">
-                <span class="types-label">职业锚点：</span>
+              <p class="job-salary">{{ job.salary }}</p>
+              <p class="job-description">{{ job.description }}</p>
+              
+              <div class="divider"></div>
+              
+              <div class="job-detail-section">
+                <div class="section-title">技术要求</div>
+                <p>{{ job.technicalRequirements }}</p>
+              </div>
+              
+              <div class="job-detail-section">
+                <div class="section-title">能力要求</div>
+                <p>{{ job.skillRequirements }}</p>
+              </div>
+              
+              <div class="job-requirements">
+                <div class="section-title">核心技能：</div>
                 <el-tag 
-                  v-for="(type, idx) in job.anchorTypes" 
+                  v-for="(skill, idx) in job.requirements" 
                   :key="idx"
                   size="small"
-                  type="warning"
+                  class="requirement-tag"
                 >
-                  {{ type }}
+                  {{ skill }}
                 </el-tag>
               </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-    
-    <!-- 测评详情对话框 -->
-    <el-dialog
-      v-model="showAssessmentDetails"
-      title="测评结果详情"
-      width="70%"
-    >
-      <div class="assessment-details">
-        <div class="detail-section">
-          <h3>荷兰德职业兴趣类型得分</h3>
-          <div class="scores-grid">
-            <div v-for="(score, type) in hollandScores" :key="type" class="score-item">
-              <div class="type-label">{{ getHollandTypeLabel(type) }}</div>
-              <el-progress type="dashboard" :percentage="Math.round(score * 20)" />
-              <div class="type-description">{{ getHollandTypeDescription(type) }}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="detail-section">
-          <h3>职业锚点类型得分</h3>
-          <div class="scores-grid">
-            <div v-for="(score, type) in anchorScores" :key="type" class="score-item">
-              <div class="type-label">{{ getAnchorTypeLabel(type) }}</div>
-              <el-progress type="dashboard" :percentage="Math.round(score / maxAnchorScore * 100)" />
-              <div class="type-description">{{ getAnchorTypeDescription(type) }}</div>
-            </div>
-          </div>
-        </div>
+              
+              <div class="job-types">
+                <div class="types-section">
+                  <span class="types-label">荷兰德类型：</span>
+                  <el-tag 
+                    v-for="(type, idx) in job.hollandTypes" 
+                    :key="idx"
+                    size="small"
+                    type="success"
+                  >
+                    {{ getHollandTypeShort(type) }}
+                  </el-tag>
+                </div>
+                
+                <div class="types-section">
+                  <span class="types-label">职业锚点：</span>
+                  <el-tag 
+                    v-for="(type, idx) in job.anchorTypes" 
+                    :key="idx"
+                    size="small"
+                    type="warning"
+                  >
+                    {{ type }}
+                  </el-tag>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
-    </el-dialog>
-  </div>
+      
+      <!-- 测评详情对话框 -->
+      <el-dialog
+        v-model="showAssessmentDetails"
+        title="测评结果详情"
+        width="70%"
+      >
+        <div class="assessment-details">
+          <div class="detail-section">
+            <h3>荷兰德职业兴趣类型得分</h3>
+            <div class="scores-grid">
+              <div v-for="(score, type) in hollandScores" :key="type" class="score-item">
+                <div class="type-label">{{ getHollandTypeLabel(type) }}</div>
+                <el-progress type="dashboard" :percentage="Math.round(score * 20)" />
+                <div class="type-description">{{ getHollandTypeDescription(type) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="detail-section">
+            <h3>职业锚点类型得分</h3>
+            <div class="scores-grid">
+              <div v-for="(score, type) in anchorScores" :key="type" class="score-item">
+                <div class="type-label">{{ getAnchorTypeLabel(type) }}</div>
+                <el-progress type="dashboard" :percentage="Math.round(score / maxAnchorScore * 100)" />
+                <div class="type-description">{{ getAnchorTypeDescription(type) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-dialog>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { jobData, calculateJobMatch } from '../data/job-data'
+import AppLayout from '../components/AppLayout.vue'
 
 const router = useRouter()
 

@@ -1,84 +1,86 @@
 <template>
-  <div class="home-container">
-    <!-- 系统介绍和引导区域 -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <h1>基于霍兰德职业兴趣理论的职位推荐系统</h1>
-        <p>通过科学的职业测评，发现你的职业倾向，找到最适合你的职业方向</p>
-        <el-button type="primary" size="large" @click="router.push('/job-quiz')">
-          开始测评
-        </el-button>
+  <AppLayout>
+    <div class="home-container">
+      <!-- 系统介绍和引导区域 -->
+      <div class="hero-section">
+        <div class="hero-content">
+          <h1>基于霍兰德职业兴趣理论的职位推荐系统</h1>
+          <p>通过科学的职业测评，发现你的职业倾向，找到最适合你的职业方向</p>
+          <el-button type="primary" size="large" @click="router.push('/job-quiz')">
+            开始测评
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 快速入口区域 -->
+      <div class="quick-access">
+        <el-row :gutter="20">
+          <el-col :span="6" v-for="(item, index) in quickAccessItems" :key="index">
+            <el-card class="quick-access-card" @click="router.push(item.route)">
+              <el-icon class="quick-access-icon"><component :is="item.icon" /></el-icon>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description }}</p>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- 热门职位展示 -->
+      <div class="hot-jobs">
+        <h2>热门职位推荐</h2>
+        <el-row :gutter="20">
+          <el-col :span="8" v-for="(job, index) in hotJobs" :key="index">
+            <el-card class="job-card" shadow="hover" @click="searchJobOnBoss(job.title)" style="cursor: pointer;">
+              <h3>{{ job.title }}</h3>
+              <div class="job-tags">
+                <el-tag v-for="(tag, idx) in job.tags" :key="idx" :type="tag.type">
+                  {{ tag.text }}
+                </el-tag>
+              </div>
+              <p class="job-salary">{{ job.salary }}</p>
+              <p class="job-description">{{ job.description }}</p>
+              <div class="job-requirements">
+                <h4>所需技能：</h4>
+                <el-tag 
+                  v-for="(skill, idx) in job.requirements" 
+                  :key="idx"
+                  size="small"
+                  class="requirement-tag"
+                >
+                  {{ skill }}
+                </el-tag>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- 职业类型介绍 -->
+      <div class="career-types">
+        <h2>职业类型介绍</h2>
+        <el-row :gutter="20">
+          <el-col :span="4" v-for="(type, index) in careerTypes" :key="index">
+            <el-card class="type-card" shadow="hover">
+              <h3>{{ type.name }}</h3>
+              <p>{{ type.description }}</p>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- 数据统计展示 -->
+      <div class="statistics">
+        <el-row :gutter="20">
+          <el-col :span="6" v-for="(stat, index) in statistics" :key="index">
+            <el-card class="stat-card" shadow="hover">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-label">{{ stat.label }}</div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
     </div>
-
-    <!-- 快速入口区域 -->
-    <div class="quick-access">
-      <el-row :gutter="20">
-        <el-col :span="6" v-for="(item, index) in quickAccessItems" :key="index">
-          <el-card class="quick-access-card" @click="router.push(item.route)">
-            <el-icon class="quick-access-icon"><component :is="item.icon" /></el-icon>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.description }}</p>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-
-    <!-- 热门职位展示 -->
-    <div class="hot-jobs">
-      <h2>热门职位推荐</h2>
-      <el-row :gutter="20">
-        <el-col :span="8" v-for="(job, index) in hotJobs" :key="index">
-          <el-card class="job-card" shadow="hover">
-            <h3>{{ job.title }}</h3>
-            <div class="job-tags">
-              <el-tag v-for="(tag, idx) in job.tags" :key="idx" :type="tag.type">
-                {{ tag.text }}
-              </el-tag>
-            </div>
-            <p class="job-salary">{{ job.salary }}</p>
-            <p class="job-description">{{ job.description }}</p>
-            <div class="job-requirements">
-              <h4>所需技能：</h4>
-              <el-tag 
-                v-for="(skill, idx) in job.requirements" 
-                :key="idx"
-                size="small"
-                class="requirement-tag"
-              >
-                {{ skill }}
-              </el-tag>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-
-    <!-- 职业类型介绍 -->
-    <div class="career-types">
-      <h2>职业类型介绍</h2>
-      <el-row :gutter="20">
-        <el-col :span="4" v-for="(type, index) in careerTypes" :key="index">
-          <el-card class="type-card" shadow="hover">
-            <h3>{{ type.name }}</h3>
-            <p>{{ type.description }}</p>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-
-    <!-- 数据统计展示 -->
-    <div class="statistics">
-      <el-row :gutter="20">
-        <el-col :span="6" v-for="(stat, index) in statistics" :key="index">
-          <el-card class="stat-card" shadow="hover">
-            <div class="stat-value">{{ stat.value }}</div>
-            <div class="stat-label">{{ stat.label }}</div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -96,6 +98,7 @@ import {
   Promotion,
   OfficeBuilding
 } from '@element-plus/icons-vue'
+import AppLayout from '../components/AppLayout.vue'
 
 const router = useRouter()
 
@@ -208,6 +211,12 @@ const statistics = [
     label: '用户满意度'
   }
 ]
+
+// 跳转到BOSS直聘搜索职位
+const searchJobOnBoss = (jobTitle) => {
+  const searchUrl = `https://www.zhipin.com/job_detail/?query=${encodeURIComponent(jobTitle)}`
+  window.open(searchUrl, '_blank')
+}
 </script>
 
 <style scoped>
