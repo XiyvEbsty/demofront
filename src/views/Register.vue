@@ -53,13 +53,6 @@
             />
           </el-form-item>
 
-          <el-form-item label="真实姓名" prop="realName">
-            <el-input 
-              v-model="registerForm.realName" 
-              placeholder="请输入真实姓名"
-            />
-          </el-form-item>
-
           <el-form-item>
             <el-button 
               type="primary" 
@@ -92,8 +85,7 @@ const registerForm = reactive({
   password: '',
   confirmPassword: '',
   email: '',
-  phone: '',
-  realName: ''
+  phone: ''
 })
 
 const validatePass = (rule, value, callback) => {
@@ -137,9 +129,6 @@ const rules = {
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
-  ],
-  realName: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' }
   ]
 }
 
@@ -156,7 +145,6 @@ const handleRegister = async () => {
         password: registerForm.password,
         email: registerForm.email,
         phone: registerForm.phone,
-        realName: registerForm.realName,
         role: 'user'
       }
       

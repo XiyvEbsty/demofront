@@ -180,12 +180,18 @@ export const userService = {
    * @returns {Promise<boolean>} Update success
    */
   updateUserInfo(user) {
+    console.log('准备更新用户信息:', JSON.stringify(user));
     return apiClient.put(`/users/${user.id || 'current'}`, user)
       .then(response => {
+        console.log('更新用户信息响应:', response.data);
         if (response.data.code === '200') {
           return response.data.data;
         }
         throw new Error(response.data.message || 'Failed to update user info');
+      })
+      .catch(error => {
+        console.error('更新用户信息失败:', error);
+        throw error;
       });
   },
   

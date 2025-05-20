@@ -15,18 +15,50 @@
 
           <el-form 
             :model="userInfo" 
+            :rules="userRules"
+            ref="userFormRef"
             label-width="100px"
             :disabled="!isEditing"
           >
-            <el-form-item label="用户名">
+            <el-form-item label="用户名" prop="username">
               <el-input v-model="userInfo.username" />
             </el-form-item>
-            <el-form-item label="邮箱">
+            <el-form-item label="邮箱" prop="email">
               <el-input v-model="userInfo.email" />
             </el-form-item>
-            <el-form-item label="手机号">
+            <el-form-item label="手机号" prop="phone">
               <el-input v-model="userInfo.phone" />
             </el-form-item>
+            
+            <template v-if="isEditing">
+              <el-divider>修改密码（可选）</el-divider>
+              <el-form 
+                :model="passwordForm" 
+                :rules="passwordRules"
+                ref="passwordFormRef"
+                label-width="100px"
+              >
+                <el-form-item label="当前密码" prop="currentPassword">
+                  <el-input v-model="passwordForm.currentPassword" type="password" show-password />
+                </el-form-item>
+                <el-form-item label="新密码" prop="newPassword">
+                  <el-input 
+                    v-model="passwordForm.newPassword" 
+                    type="password" 
+                    show-password
+                    :disabled="!passwordForm.currentPassword"
+                  />
+                </el-form-item>
+                <el-form-item label="确认新密码" prop="confirmPassword">
+                  <el-input 
+                    v-model="passwordForm.confirmPassword" 
+                    type="password" 
+                    show-password
+                    :disabled="!passwordForm.newPassword"
+                  />
+                </el-form-item>
+              </el-form>
+            </template>
             
             <el-form-item v-if="isEditing">
               <el-button type="primary" @click="saveProfile">保存</el-button>
@@ -207,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts/core'
@@ -236,17 +268,73 @@ echarts.use([
 
 const router = useRouter()
 const isEditing = ref(false)
+const userFormRef = ref(null)
+const passwordFormRef = ref(null)
+
 const userInfo = ref({
   username: '',
   email: '',
   phone: ''
 })
 
+const passwordForm = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// 表单验证规则
+const validatePass = (rule, value, callback) => {
+  console.log('验证确认密码:', value, passwordForm.newPassword)
+  if (value && value !== passwordForm.newPassword) {
+    callback(new Error('两次输入密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+const validateCurrentPass = (rule, value, callback) => {
+  console.log('验证当前密码:', value, passwordForm.newPassword)
+  if (passwordForm.newPassword && !value) {
+    callback(new Error('如需修改密码，请输入当前密码'))
+  } else {
+    callback()
+  }
+}
+
+const userRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+  ]
+}
+
+const passwordRules = {
+  currentPassword: [
+    { validator: validateCurrentPass, trigger: 'blur' }
+  ],
+  newPassword: [
+    { min: 6, message: '密码长度不能小于6个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { validator: validatePass, trigger: 'blur' }
+  ]
+}
+
 // 加载用户信息
 const loadUserInfo = async () => {
   try {
     const user = await userService.getCurrentUser()
     userInfo.value = {
+      id: user.id,
       username: user.username,
       email: user.email || '',
       phone: user.phone || ''
@@ -259,22 +347,65 @@ const loadUserInfo = async () => {
 
 // 保存个人资料
 const saveProfile = async () => {
+  if (!userFormRef.value) return
+  
   try {
+    // 验证基本信息表单
+    await userFormRef.value.validate()
+    
+    // 如果填写了密码，则验证密码表单
+    let changePassword = false
+    if (passwordForm.currentPassword || passwordForm.newPassword || passwordForm.confirmPassword) {
+      if (passwordFormRef.value) {
+        await passwordFormRef.value.validate()
+        changePassword = true
+      }
+    }
+    
+    console.log('验证通过，准备提交数据，是否修改密码:', changePassword)
+    
+    // 构建更新数据
+    const updateData = {
+      id: userInfo.value.id,
+      username: userInfo.value.username,
+      email: userInfo.value.email,
+      phone: userInfo.value.phone
+    }
+    
+    // 如果提供了密码，添加到更新数据
+    if (changePassword) {
+      console.log('添加密码修改数据:', passwordForm.currentPassword, passwordForm.newPassword)
+      updateData.currentPassword = passwordForm.currentPassword
+      updateData.newPassword = passwordForm.newPassword
+    }
+    
+    console.log('发送更新数据:', JSON.stringify(updateData))
+    
     // 调用API保存用户信息
-    await userService.updateUserInfo(userInfo.value)
+    await userService.updateUserInfo(updateData)
     isEditing.value = false
     ElMessage.success('保存成功')
+    
+    // 清空密码表单
+    passwordForm.currentPassword = ''
+    passwordForm.newPassword = ''
+    passwordForm.confirmPassword = ''
     
     // 重新加载用户信息到全局状态
     await loadCurrentUser()
   } catch (error) {
-    ElMessage.error('保存失败')
+    console.error('保存失败:', error)
+    ElMessage.error(error.message || '保存失败')
   }
 }
 
 // 取消编辑
 const cancelEdit = () => {
   isEditing.value = false
+  // 清空密码表单
+  passwordForm.currentPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
   // 重新加载用户信息
   loadUserInfo()
 }
@@ -283,7 +414,7 @@ const cancelEdit = () => {
 const hollandHistory = ref([
   {
     id: 1,
-    date: '2024-03-15',
+    date: new Date().toLocaleDateString(),
     scores: {
       R: 65,
       I: 85,
@@ -295,7 +426,7 @@ const hollandHistory = ref([
   },
   {
     id: 2,
-    date: '2024-02-20',
+    date: new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString(), // 昨天
     scores: {
       R: 60,
       I: 75,
@@ -311,7 +442,7 @@ const hollandHistory = ref([
 const anchorHistory = ref([
   {
     id: 1,
-    date: '2024-03-18',
+    date: new Date().toLocaleDateString(),
     scores: {
       TF: 80,
       GM: 40,
@@ -325,7 +456,7 @@ const anchorHistory = ref([
   },
   {
     id: 2,
-    date: '2024-02-25',
+    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 3天前
     scores: {
       TF: 75,
       GM: 45,
@@ -661,7 +792,7 @@ const goToQuiz = () => {
 }
 
 // 在组件挂载时获取用户信息
-onMounted(async () => {
+onMounted(() => {
   // 检查用户是否登录
   if (!userService.isLoggedIn()) {
     ElMessage.warning('请先登录')
@@ -670,7 +801,7 @@ onMounted(async () => {
   }
   
   // 加载用户信息
-  await loadUserInfo()
+  loadUserInfo()
   
   // 初始化图表
   nextTick(() => {
@@ -692,19 +823,33 @@ onMounted(async () => {
 <style scoped>
 .user-profile {
   padding: 20px;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 .profile-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
   margin-top: 20px;
 }
 
 .profile-card, .history-card {
+  width: 100%;
   height: fit-content;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.profile-card :deep(.el-card__header) {
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #e6ebf5;
+  padding: 15px 20px;
+}
+
+.profile-card :deep(.el-card__body) {
+  padding: 30px;
 }
 
 .card-header {
@@ -716,54 +861,76 @@ onMounted(async () => {
 .card-header h2 {
   margin: 0;
   color: #303133;
+  font-size: 18px;
 }
 
 .history-tabs {
   margin-top: 10px;
 }
 
+.history-card :deep(.el-card__body) {
+  padding: 20px;
+}
+
 .history-item-card {
   margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.el-form-item) {
+  max-width: 500px;
+  margin: 0 auto 22px;
+}
+
+:deep(.el-input) {
+  max-width: 100%;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
 }
 
 .history-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .history-card-header h4 {
   margin: 0;
   color: #303133;
+  font-size: 16px;
 }
 
 .result-chart {
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .radar-chart, .bar-chart {
   width: 100%;
-  height: 220px;
+  height: 250px;
 }
 
 .result-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .result-description {
-  margin-top: 10px;
+  margin-top: 15px;
   border-top: 1px solid #EBEEF5;
-  padding-top: 10px;
+  padding-top: 15px;
 }
 
 .type-description {
   color: #606266;
   font-size: 14px;
-  margin-top: 5px;
+  line-height: 1.5;
+  margin-top: 8px;
 }
 
 .job-recommendation-container {
@@ -839,7 +1006,7 @@ onMounted(async () => {
 }
 
 :deep(.el-timeline-item__content) {
-  padding-bottom: 10px;
+  padding-bottom: 15px;
 }
 
 :deep(.el-timeline-item__timestamp) {
@@ -853,6 +1020,10 @@ onMounted(async () => {
   
   .job-cards {
     grid-template-columns: 1fr;
+  }
+  
+  .profile-card :deep(.el-card__body) {
+    padding: 20px 15px;
   }
 }
 </style> 
