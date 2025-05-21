@@ -145,7 +145,7 @@ export default {
         email: 'admin@example.com',
         avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
         role: 'admin',
-        lastLogin: '2023-07-10 15:20:30'
+        lastLogin: new Date().toLocaleString()
       },
       {
         id: 2,
@@ -154,7 +154,7 @@ export default {
         email: 'zhangsan@example.com',
         avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
         role: 'user',
-        lastLogin: '2023-07-09 10:15:22'
+        lastLogin: new Date().toLocaleString()
       },
       {
         id: 3,
@@ -163,7 +163,7 @@ export default {
         email: 'lisi@example.com',
         avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
         role: 'user',
-        lastLogin: '2023-07-08 14:30:45'
+        lastLogin: new Date().toLocaleString()
       },
       {
         id: 4,
@@ -172,7 +172,7 @@ export default {
         email: 'hr@example.com',
         avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
         role: 'admin',
-        lastLogin: '2023-07-07 09:40:18'
+        lastLogin: new Date().toLocaleString()
       }
     ]);
     
@@ -313,7 +313,7 @@ export default {
               const newUser = {
                 ...currentUser.value,
                 id: newId,
-                lastLogin: '从未登录'
+                lastLogin: new Date().toLocaleString()
               };
               userList.value.push(newUser);
               ElMessage.success('用户创建成功');

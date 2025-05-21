@@ -384,7 +384,13 @@ const saveProfile = async () => {
     // 调用API保存用户信息
     await userService.updateUserInfo(updateData)
     isEditing.value = false
-    ElMessage.success('保存成功')
+    
+    // 显示成功消息，区分是否修改了密码
+    if (changePassword) {
+      ElMessage.success('密码修改成功，下次登录请使用新密码')
+    } else {
+      ElMessage.success('保存成功')
+    }
     
     // 清空密码表单
     passwordForm.currentPassword = ''

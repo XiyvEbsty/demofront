@@ -113,7 +113,7 @@ const handleLogin = async () => {
       loading.value = false;
     } catch (error) {
       console.error('登录失败:', error);
-      ElMessage.error(error.message || '用户名或密码不正确，请重新输入')
+      ElMessage.error(error.message || '用户名或密码错误')
       loading.value = false
     }
   } catch (error) {

@@ -64,7 +64,7 @@ const handleLogin = () => {
           ElMessage.success('管理员登录成功')
           router.push('/home')
         } else {
-          ElMessage.error('管理员密码错误')
+          ElMessage.error('用户名或密码错误')
         }
         loading.value = false
       }, 1000)
