@@ -8,12 +8,12 @@
         <el-alert
           title="您尚未完成职业测评"
           type="warning"
-          description="请完成荷兰德职业兴趣测评和职业锚点测评，以获取更精准的职位推荐"
+          description="请完成霍兰德职业兴趣测评和职业锚点测评，以获取更精准的职位推荐"
           show-icon
           :closable="false"
         />
         <div class="tip-actions">
-          <el-button type="primary" @click="router.push('/job-quiz')">去完成荷兰德测评</el-button>
+          <el-button type="primary" @click="router.push('/job-quiz')">去完成霍兰德测评</el-button>
           <el-button type="primary" @click="router.push('/career-anchor-quiz')">去完成职业锚点测评</el-button>
         </div>
       </div>
@@ -30,7 +30,7 @@
           
           <div class="summary-content">
             <div class="summary-item">
-              <h3>荷兰德职业兴趣主导类型</h3>
+              <h3>霍兰德职业兴趣主导类型</h3>
               <div class="type-badges">
                 <el-tag 
                   v-for="(type, index) in topHollandTypes" 
@@ -124,7 +124,7 @@
               
               <div class="job-types">
                 <div class="types-section">
-                  <span class="types-label">荷兰德类型：</span>
+                  <span class="types-label">霍兰德类型：</span>
                   <el-tag 
                     v-for="(type, idx) in job.hollandTypes" 
                     :key="idx"
@@ -160,7 +160,7 @@
       >
         <div class="assessment-details">
           <div class="detail-section">
-            <h3>荷兰德职业兴趣类型得分</h3>
+            <h3>霍兰德职业兴趣类型得分</h3>
             <div class="scores-grid">
               <div v-for="(score, type) in hollandScores" :key="type" class="score-item">
                 <div class="type-label">{{ getHollandTypeLabel(type) }}</div>
