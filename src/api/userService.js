@@ -89,7 +89,7 @@ export const userService = {
           
           return token;
         }
-        throw new Error(response.data.message || 'Login failed');
+        throw new Error(response.data.message || '用户名或密码错误');
       });
   },
   
