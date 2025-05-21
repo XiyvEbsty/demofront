@@ -62,10 +62,6 @@
               <el-icon><User /></el-icon>
               <span>用户管理</span>
             </el-menu-item>
-            <el-menu-item index="/manager/jobs">
-              <el-icon><Briefcase /></el-icon>
-              <span>职位管理</span>
-            </el-menu-item>
             <el-menu-item index="/manager/stats">
               <el-icon><DataAnalysis /></el-icon>
               <span>统计分析</span>
@@ -89,7 +85,7 @@
 </template>
 
 <script setup>
-import {Document, Location, User, Briefcase, DataAnalysis, Connection, HomeFilled} from "@element-plus/icons-vue";
+import {Document, Location, User, DataAnalysis, Connection, HomeFilled} from "@element-plus/icons-vue";
 import { useRouter, useRoute } from 'vue-router'
 import { userInfo } from '@/store/user'
 import { computed } from 'vue'

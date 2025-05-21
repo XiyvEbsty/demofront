@@ -11,7 +11,6 @@ import CareerAnchorQuiz from '../views/CareerAnchorQuiz.vue'
 import KnowledgeGraphManagement from '../views/KnowledgeGraphManagement.vue'
 import QuestionManager from '../views/QuestionManager.vue'
 import UserManager from '../views/UserManager.vue'
-import JobManager from '../views/JobManager.vue'
 import StatsManager from '../views/StatsManager.vue'
 import NotFound from '../views/404.vue'
 
@@ -70,15 +69,6 @@ const routes = [
           meta: {
             isAdmin: true,
             title: '用户管理'
-          }
-        },
-        {
-          path: 'jobs',
-          name: 'JobManager',
-          component: JobManager,
-          meta: {
-            isAdmin: true,
-            title: '职位管理'
           }
         },
         {
